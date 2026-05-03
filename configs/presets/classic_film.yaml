@@ -1,0 +1,44 @@
+name: classic_film
+description: >
+  Full classic-film restoration pipeline:
+  deinterlace → upscale 4× → colorize → face restoration → 2× frame interpolation.
+  Designed for pre-1970s monochrome footage with interlacing artifacts.
+  Adjust or disable individual stages to suit your source material.
+chunk_size: 16
+chunk_overlap: 2
+
+stages:
+  # Stage 1 — Remove interlacing (placeholder: will use AI deinterlacer in Phase 4.3)
+  # Disabled by default until the AI deinterlacer is implemented.
+  # Enable manually or replace with a custom deinterlacer restorer.
+  - restorer: yadif_deinterlace
+    enabled: false
+    scale: 1
+
+  # Stage 2 — 4× super-resolution
+  - restorer: real_esrgan_x4plus
+    scale: 4
+    tile_size: 0        # set to 512 for very high-res source material
+    tile_overlap: 32
+    half_precision: true
+    enabled: true
+
+  # Stage 3 — Colorization (grayscale → color)
+  - restorer: ddcolor
+    scale: 1
+    half_precision: false
+    enabled: true
+
+  # Stage 4 — Blind face restoration
+  - restorer: codeformer
+    scale: 1
+    half_precision: false
+    enabled: true
+    extra:
+      fidelity: 0.5
+
+  # Stage 5 — 2× frame interpolation (24fps → 48fps)
+  # Disable if temporal consistency is more important than smoothness.
+  - restorer: rife_v4
+    scale: 1
+    enabled: true

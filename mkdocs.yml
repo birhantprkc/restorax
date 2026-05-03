@@ -1,0 +1,81 @@
+site_name: RestoraX
+site_description: Modern AI video restoration platform
+site_author: RestoraX Contributors
+repo_url: https://github.com/yourname/restorax
+repo_name: yourname/restorax
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - tables
+  - attr_list
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: guides/installation.md
+    - Quick Start: guides/quickstart.md
+    - Configuration: guides/configuration.md
+  - Presets:
+    - Overview: presets/overview.md
+    - sr_x4: presets/sr_x4.md
+    - sr_x4_face: presets/sr_x4_face.md
+    - classic_film: presets/classic_film.md
+    - anime_upscale: presets/anime_upscale.md
+    - vhs_restoration: presets/vhs_restoration.md
+    - newsreel: presets/newsreel.md
+    - Custom Presets: presets/custom.md
+  - Restorers:
+    - Catalog: api/restorers.md
+    - Super-Resolution: api/super_resolution.md
+    - Colorization: api/colorization.md
+    - Face Restoration: api/face_restoration.md
+    - Frame Interpolation: api/frame_interpolation.md
+    - Artifact Removal: api/artifact_removal.md
+    - HDR Conversion: api/hdr.md
+    - Stabilization: api/stabilization.md
+    - Deinterlacing: api/deinterlacing.md
+  - API Reference:
+    - REST API: api/rest.md
+    - WebSocket: api/websocket.md
+    - Python API: api/python.md
+  - Guides:
+    - Multi-GPU Setup: guides/multi_gpu.md
+    - Fine-tuning: guides/finetuning.md
+    - Writing a Plugin: guides/plugins.md
+    - Docker Deployment: guides/docker.md

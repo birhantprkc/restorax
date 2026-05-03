@@ -1,0 +1,58 @@
+# ── Python cache ─────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# ── Dev/test files ────────────────────────────────────────────────────────────
+.env
+.env.local
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+benchmark_results/
+
+# ── Model weights (mounted as Docker volume, not baked into image) ────────────
+models/
+
+# ── Local data ────────────────────────────────────────────────────────────────
+data/
+*.db
+*.sqlite3
+*.log
+
+# ── Docs ─────────────────────────────────────────────────────────────────────
+docs/
+site/
+mkdocs.yml
+*.md
+
+# ── Node.js / frontend (built separately) ────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# ── Version control ───────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── CI / GitHub ──────────────────────────────────────────────────────────────
+.github/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

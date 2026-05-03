@@ -1,0 +1,41 @@
+name: newsreel
+description: >
+  Newsreel and documentary restoration for 16mm/35mm film content from
+  the 1920s–1960s. Typical degradation: heavy grain/noise, scratches,
+  flickering, faded contrast, and B&W (sometimes tinted) footage.
+  No face restoration by default (faces are often small/distant in newsreels).
+  Enable stage 4 manually for close-up interview material.
+chunk_size: 24
+chunk_overlap: 4
+
+stages:
+  # Stage 1 — Remove film scratches and dust specks
+  - restorer: scratch_removal
+    scale: 1
+    enabled: true
+
+  # Stage 2 — 4× super-resolution (handles grain reduction)
+  - restorer: real_esrgan_x4plus
+    scale: 4
+    tile_size: 512      # most newsreel is 480p or less; tiling not needed
+    tile_overlap: 32
+    half_precision: true
+    enabled: true
+
+  # Stage 3 — Colorization (most newsreels are B&W)
+  - restorer: ddcolor
+    scale: 1
+    enabled: true
+
+  # Stage 4 — Face restoration (disabled by default for crowd shots)
+  - restorer: codeformer
+    scale: 1
+    enabled: false
+    extra:
+      fidelity: 0.7
+
+  # Stage 5 — Frame interpolation (newsreel: 16–18fps → 24fps)
+  # Use with caution: interpolation on historical footage can look unnatural
+  - restorer: rife_v4
+    scale: 1
+    enabled: false

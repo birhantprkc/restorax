@@ -1,0 +1,47 @@
+# docker-compose.deps.yml
+#
+# Start only the external services (Redis, Postgres) that RestoraX depends on
+# for local development. Run the Python API and worker via Procfile.dev instead.
+#
+# Usage:
+#   docker compose -f docker-compose.deps.yml up -d   # start deps
+#   docker compose -f docker-compose.deps.yml down     # stop deps
+#   docker compose -f docker-compose.deps.yml down -v  # stop + delete volumes
+#
+# Then start the app:
+#   honcho start -f Procfile.dev
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: restorax
+      POSTGRES_USER: restorax
+      POSTGRES_PASSWORD: restorax
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restorax"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis_dev_data:
+  postgres_dev_data:

@@ -1,0 +1,54 @@
+name: classic_film_audio
+description: >
+  Full classic film restoration with audio denoising.
+  Video: deinterlace → SR → colorize → face → interpolate.
+  Audio: Demucs source separation (keeps vocals + background, removes isolated noise)
+         followed by VoiceFixer speech enhancement.
+  Enable restore_audio=true in the job request to activate the audio pipeline.
+chunk_size: 16
+chunk_overlap: 2
+
+stages:
+  # Stage 1 — Deinterlacing (disabled; enable for interlaced sources)
+  - restorer: ai_deinterlace
+    enabled: false
+    scale: 1
+
+  # Stage 2 — 4× super-resolution
+  - restorer: real_esrgan_x4plus
+    scale: 4
+    tile_size: 0
+    tile_overlap: 32
+    half_precision: true
+    enabled: true
+
+  # Stage 3 — Colorization (B&W → color)
+  - restorer: ddcolor
+    scale: 1
+    enabled: true
+
+  # Stage 4 — Face restoration
+  - restorer: codeformer
+    scale: 1
+    enabled: true
+    extra:
+      fidelity: 0.5
+
+  # Stage 5 — Frame interpolation
+  - restorer: rife_v4
+    scale: 1
+    enabled: true
+
+# ── Audio stages (activated when restore_audio=true) ─────────────────────────
+audio_stages:
+  # Stage A1 — Source separation: keep vocals + ambience, remove isolated noise
+  - restorer: demucs_htdemucs
+    enabled: true
+    sample_rate: 44100
+    extra:
+      stems: ["vocals", "other"]
+
+  # Stage A2 — Speech enhancement for dialogue clarity
+  - restorer: voicefixer
+    enabled: true
+    sample_rate: 44100

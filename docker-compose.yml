@@ -1,0 +1,119 @@
+version: "3.9"
+
+services:
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: restorax
+      POSTGRES_USER: restorax
+      POSTGRES_PASSWORD: restorax
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restorax"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"  # MinIO Console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── API ─────────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      RESTORAX_DATABASE_URL: postgresql+asyncpg://restorax:restorax@postgres:5432/restorax
+      RESTORAX_REDIS_URL: redis://redis:6379/0
+      RESTORAX_STORAGE_BACKEND: local
+      RESTORAX_STORAGE_LOCAL_ROOT: /app/data
+      RESTORAX_DEVICE: cpu
+      RESTORAX_MODEL_DIR: /app/models
+      APP_ENV: development
+      LOG_LEVEL: INFO
+    volumes:
+      - app_data:/app/data
+      - model_weights:/app/models
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── GPU Worker ───────────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    environment:
+      RESTORAX_DATABASE_URL: postgresql+asyncpg://restorax:restorax@postgres:5432/restorax
+      RESTORAX_REDIS_URL: redis://redis:6379/0
+      RESTORAX_STORAGE_BACKEND: local
+      RESTORAX_STORAGE_LOCAL_ROOT: /app/data
+      RESTORAX_DEVICE: cuda
+      RESTORAX_MODEL_DIR: /app/models
+      RESTORAX_REGISTRY_MAX_LOADED: "2"
+    volumes:
+      - app_data:/app/data
+      - model_weights:/app/models
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  redis_data:
+  postgres_data:
+  minio_data:
+  app_data:
+  model_weights:

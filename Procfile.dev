@@ -1,0 +1,30 @@
+# RestoraX — Development Procfile
+#
+# Prerequisites (one-time setup):
+#   conda create -n restorax python=3.11 && conda activate restorax
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#   pip install -e ".[dev]" && pip install honcho
+#   cp .env.example .env
+#   cd frontend && npm install && cd ..
+#
+# Start external services (Redis + Postgres):
+#   docker compose -f docker-compose.deps.yml up -d
+#
+# Start the app:
+#   honcho start -f Procfile.dev               # all processes
+#   honcho start -f Procfile.dev api worker    # headless (no UI, no flower)
+#   honcho start -f Procfile.dev api           # API + docs only
+#
+# Processes and URLs:
+#   api      → http://localhost:8000   (FastAPI + WebSocket)
+#   worker   →                         (Celery GPU worker)
+#   frontend → http://localhost:3000   (Next.js UI)
+#   flower   → http://localhost:5555   (Celery monitor — optional)
+#
+# Each process runs inside the 'restorax' conda env regardless of which
+# shell honcho is launched from. Environment variables are read from .env.
+
+api:      conda run --no-capture-output -n restorax uvicorn restorax.api.app:app --host 0.0.0.0 --port 8000 --reload
+worker:   conda run --no-capture-output -n restorax celery -A restorax.tasks.celery_app worker --queues ${RESTORAX_GPU_QUEUES:-gpu_default} --concurrency=1 --loglevel=info
+frontend: cd frontend && npm run dev
+flower:   conda run --no-capture-output -n restorax celery -A restorax.tasks.celery_app flower --port=${FLOWER_PORT:-5555}

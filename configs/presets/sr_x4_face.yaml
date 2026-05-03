@@ -1,0 +1,24 @@
+name: sr_x4_face
+description: "4× super-resolution then blind face restoration (Real-ESRGAN → CodeFormer)"
+chunk_size: 16
+chunk_overlap: 2
+
+stages:
+  # Stage 1: upscale the full frame 4×
+  - restorer: real_esrgan_x4plus
+    scale: 4
+    tile_size: 0        # set to 512 for 4K inputs
+    tile_overlap: 32
+    half_precision: true
+    enabled: true
+
+  # Stage 2: enhance faces in the upscaled frame
+  # CodeFormer expects BGR — VideoReader outputs RGB, so pipeline must convert.
+  # The restorer declares input_color_space="bgr"; PipelineRunner handles conversion
+  # via video.utils.from_rgb / to_rgb at stage boundaries (Phase 3 enhancement).
+  - restorer: codeformer
+    scale: 1
+    half_precision: false
+    enabled: true
+    extra:
+      fidelity: 0.5     # 0.0 = max enhancement, 1.0 = max fidelity

@@ -1,0 +1,99 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+site-packages/
+
+# ── Environment ───────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── AI model weights (download separately via weights_manager) ────────────────
+models/
+*.pth
+*.pt
+*.onnx
+*.safetensors
+*.ckpt
+*.bin
+
+# ── User data and output ──────────────────────────────────────────────────────
+data/
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wav
+*.flac
+
+# ── Database files ────────────────────────────────────────────────────────────
+*.db
+*.sqlite3
+test_*.db
+alembic/versions/__pycache__/
+
+# ── Benchmark results (generated at runtime) ──────────────────────────────────
+benchmark_results/
+*.benchmark.json
+
+# ── Test artifacts ────────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+lcov.info
+junit.xml
+test-results/
+
+# ── Type checker ──────────────────────────────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Docker volumes (if using local driver) ────────────────────────────────────
+postgres_data/
+redis_data/
+minio_data/
+redis_dev_data/
+postgres_dev_data/
+
+# ── Node / Next.js ────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/coverage/
+
+# ── Docs build ────────────────────────────────────────────────────────────────
+site/
+
+# ── Log files ─────────────────────────────────────────────────────────────────
+*.log
+celery*.log
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+*.tmp
+
+# ── Vibe Coding ───────────────────────────────────────────────────────────
+CLAUDE.md
+PLAN.md
+PROGRESS.md
+graphify-out/
+.claude

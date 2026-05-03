@@ -1,0 +1,108 @@
+# docker-compose.dev.yml
+#
+# Full development stack in Docker with hot-reload, SQLite, and CPU-only workers.
+# Prefer the Procfile.dev approach (honcho + conda) for faster iteration —
+# this file is for teams that prefer Docker or don't have conda.
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml up --build
+#   docker compose -f docker-compose.dev.yml up --build api worker   # headless
+
+services:
+  # ── Infrastructure ────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── API ───────────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn restorax.api.app:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      RESTORAX_DATABASE_URL: sqlite+aiosqlite:///./restorax.db
+      RESTORAX_REDIS_URL: redis://redis:6379/0
+      RESTORAX_STORAGE_BACKEND: local
+      RESTORAX_STORAGE_LOCAL_ROOT: /app/data
+      RESTORAX_DEVICE: cpu
+      RESTORAX_MODEL_DIR: /app/models
+      RESTORAX_REGISTRY_MAX_LOADED: "2"
+      APP_ENV: development
+      LOG_LEVEL: DEBUG
+    volumes:
+      - .:/app        # repo mount for hot-reload
+      - dev_data:/app/data
+      - dev_models:/app/models
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── Celery worker ─────────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: >
+      celery -A restorax.tasks.celery_app worker
+      --queues gpu_default --concurrency=1 --loglevel=debug
+    environment:
+      RESTORAX_DATABASE_URL: sqlite+aiosqlite:///./restorax.db
+      RESTORAX_REDIS_URL: redis://redis:6379/0
+      RESTORAX_STORAGE_BACKEND: local
+      RESTORAX_STORAGE_LOCAL_ROOT: /app/data
+      RESTORAX_DEVICE: cpu
+      RESTORAX_MODEL_DIR: /app/models
+      RESTORAX_REGISTRY_MAX_LOADED: "2"
+      APP_ENV: development
+    volumes:
+      - .:/app
+      - dev_data:/app/data
+      - dev_models:/app/models
+    depends_on:
+      redis:
+        condition: service_healthy
+    # No GPU — CPU-only for local dev; override with Dockerfile.worker + CUDA base for GPU
+    deploy: {}
+
+  # ── Next.js frontend ─────────────────────────────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules   # prevent host node_modules from being overwritten
+    ports:
+      - "3000:3000"
+
+  # ── Celery Flower monitor (optional) ─────────────────────────────────────────
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A restorax.tasks.celery_app flower --port=5555
+    environment:
+      RESTORAX_REDIS_URL: redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - monitoring  # start with: docker compose -f docker-compose.dev.yml --profile monitoring up
+
+volumes:
+  dev_data:
+  dev_models:

@@ -1,0 +1,46 @@
+name: vhs_restoration
+description: >
+  Full VHS/camcorder restoration pipeline.
+  VHS-specific degradation: interlacing (60i/50i fields), severe noise,
+  color bleeding, chroma noise, and tape dropout artifacts.
+  Order: deinterlace first (fields must be separated before any upscaling),
+  then denoise, upscale, stabilize, and enhance faces.
+chunk_size: 16
+chunk_overlap: 4
+
+stages:
+  # Stage 1 — Deinterlace: VHS is always interlaced (60i/50i)
+  - restorer: ai_deinterlace
+    scale: 1
+    enabled: true
+
+  # Stage 2 — 4× super-resolution (also handles noise / blur)
+  - restorer: real_esrgan_x4plus
+    scale: 4
+    tile_size: 0
+    tile_overlap: 32
+    half_precision: true
+    enabled: true
+
+  # Stage 3 — Stabilization (VHS handheld footage is often shaky)
+  - restorer: video_stabilization
+    scale: 1
+    enabled: true
+
+  # Stage 4 — Face restoration
+  - restorer: codeformer
+    scale: 1
+    enabled: true
+    extra:
+      fidelity: 0.6     # slightly more fidelity for old home video
+
+  # Stage 5 — Remove tape dropout and remaining artifacts
+  - restorer: scratch_removal
+    scale: 1
+    enabled: true
+
+  # Stage 6 — Colorize (if source is B&W)
+  # Disable for color VHS tapes
+  - restorer: ddcolor
+    scale: 1
+    enabled: false

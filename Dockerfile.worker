@@ -1,0 +1,62 @@
+# ── GPU Worker image ──────────────────────────────────────────────────────────
+# Requires NVIDIA Container Toolkit on the host.
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04 AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /app
+
+# System deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3.11-dev \
+    python3-pip \
+    ffmpeg \
+    libgl1 \
+    libglib2.0-0 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
+    && update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 \
+    && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+
+# PyTorch with CUDA 12.1
+RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+# ML toolboxes and video I/O
+RUN pip install \
+    basicsr \
+    av \
+    opencv-python-headless \
+    numpy \
+    pillow \
+    piqa \
+    "huggingface-hub>=0.23.0"
+
+# Queue / API deps (worker needs celery + redis + sqlalchemy to update job status)
+RUN pip install \
+    celery \
+    redis \
+    "sqlalchemy[asyncio]" \
+    asyncpg \
+    aiosqlite \
+    pydantic \
+    pydantic-settings \
+    pyyaml \
+    click \
+    rich
+
+# ── App source ────────────────────────────────────────────────────────────────
+COPY restorax/ restorax/
+COPY configs/ configs/
+
+# Model weights are mounted at runtime via Docker volume
+VOLUME ["/app/models"]
+
+# Start Celery worker (one process per GPU via CUDA_VISIBLE_DEVICES)
+CMD ["celery", "-A", "restorax.tasks.celery_app", "worker", \
+     "--loglevel=info", "--concurrency=1", "--queues=gpu_default"]

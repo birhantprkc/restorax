@@ -1,0 +1,12 @@
+name: sr_x4
+description: "4× super-resolution using Real-ESRGAN x4plus"
+chunk_size: 16
+chunk_overlap: 2
+
+stages:
+  - restorer: real_esrgan_x4plus
+    scale: 4
+    tile_size: 0       # set to e.g. 512 for 4K+ inputs to avoid OOM
+    tile_overlap: 32
+    half_precision: true
+    enabled: true

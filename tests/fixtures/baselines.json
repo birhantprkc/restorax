@@ -1,0 +1,7 @@
+{
+  "gaussian_blur": {
+    "psnr": 12.989,
+    "ssim": 0.2632
+  },
+  "description": "Baseline metrics computed with no restoration (degraded vs clean). Any good restorer should exceed these values."
+}

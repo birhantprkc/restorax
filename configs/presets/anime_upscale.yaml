@@ -1,0 +1,24 @@
+name: anime_upscale
+description: >
+  4× upscaling optimized for anime, animation, and cartoon content.
+  Real-ESRGAN with anime-specific weights preserves clean lines and cell-shading.
+  No face restoration (anime faces differ from photorealistic faces).
+  Frame interpolation smooths 24fps anime to 60fps.
+chunk_size: 16
+chunk_overlap: 2
+
+stages:
+  # Stage 1 — 4× upscaling with anime-tuned Real-ESRGAN
+  # Note: for real anime weights, download RealESRGAN_x4plus_anime_6B.pth
+  # and set extra.weight_variant: anime in a future update
+  - restorer: real_esrgan_x4plus
+    scale: 4
+    tile_size: 0
+    tile_overlap: 32
+    half_precision: true
+    enabled: true
+
+  # Stage 2 — 2× frame interpolation (24fps → 48fps)
+  - restorer: rife_v4
+    scale: 1
+    enabled: true
