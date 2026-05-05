@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from restorax.api.middleware import RequestIDMiddleware, TimingMiddleware
 from restorax.api.routers import jobs, models, pipelines, ws
+from restorax.api.routers.health import router as health_router
 from restorax.config import settings
 
 
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     )
 
     # ── Routers ───────────────────────────────────────────────────────────────
+    app.include_router(health_router)
     app.include_router(jobs.router)
     app.include_router(models.router)
     app.include_router(pipelines.router)
@@ -56,10 +58,6 @@ def create_app() -> FastAPI:
         Instrumentator().instrument(app).expose(app, endpoint="/metrics")
     except ImportError:
         pass  # prometheus-fastapi-instrumentator not installed — skip silently
-
-    @app.get("/health", tags=["health"])
-    async def health() -> dict[str, str]:
-        return {"status": "ok", "version": "0.1.0"}
 
     return app
 
