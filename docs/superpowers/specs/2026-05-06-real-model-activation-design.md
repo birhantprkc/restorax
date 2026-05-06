@@ -81,7 +81,7 @@ RNNoise) keep their passthrough stubs — audio is genuinely optional and video 
 ## Arch File Vendoring Plan
 
 | Arch file | Source repo | License | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `super_resolution/vrt_arch.py` | JingyunLiang/VRT (BasicSR) | Apache-2.0 | In BasicSR GitHub, not in pip release |
 | `super_resolution/waifu2x_arch.py` | nagadomi/waifu2x | MIT | UpConvNet architecture |
 | `super_resolution/mamba_ir_arch.py` | csguoh/MambaIR | Apache-2.0 | Requires `mamba-ssm` |
@@ -108,7 +108,7 @@ Each restorer calls `_try_resolve_weight_path()` which checks `settings.model_di
 downloads from HuggingFace Hub if the file is absent. Raises `RestorerLoadError` if HF is unreachable.
 
 | Model | HF Repo | Weight file | ~Size |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | RealESRGAN | xinntao/Real-ESRGAN | RealESRGANx4plus.pth | 67 MB |
 | BasicVSR++ | sczhou/BasicVSR-PlusPlus | basicvsr_pp_reds4.pth | 20 MB |
 | VRT | JingyunLiang/VRT | VRT_videosr_bi_REDS_6frames.pth | 350 MB |
@@ -136,7 +136,7 @@ downloads from HuggingFace Hub if the file is absent. Raises `RestorerLoadError`
 
 `SeedVR` (~7 GB), `TDM` (~5 GB), `UpscaleAVideo` (~5 GB). If weights are absent, `load()` raises:
 
-```
+```text
 RestorerLoadError: SeedVR weights not found. Download with:
   restorax download-models --model seedvr
 ```
@@ -147,7 +147,7 @@ RestorerLoadError: SeedVR weights not found. Download with:
 
 New subcommand added to the existing `restorax` CLI entry point.
 
-```
+```bash
 restorax download-models                          # show all models + status table
 restorax download-models --all                    # download all non-diffusion models
 restorax download-models --group diffusion        # download SeedVR, TDM, UpscaleAVideo
@@ -158,7 +158,7 @@ restorax download-models --model rife --force     # re-download even if present
 
 **Output format:**
 
-```
+```text
 Model           Group       Size     Status
 ──────────────────────────────────────────────
 real_esrgan     sr          67 MB    ✓ ready
@@ -175,7 +175,7 @@ Implemented in `restorax/cli/download_models.py`, registered under the `restorax
 
 ## Stub Removal & Error Handling
 
-### Before (silent stub):
+### Before (silent stub)
 
 ```python
 try:
@@ -185,7 +185,7 @@ except (ImportError, Exception) as exc:
     self._model = _BicubicStub()
 ```
 
-### After (explicit error):
+### After (explicit error)
 
 ```python
 try:
@@ -196,7 +196,7 @@ except ImportError as exc:
     ) from exc
 ```
 
-### Three rules applied consistently:
+### Three rules applied consistently
 
 1. **Arch ImportError** → `RestorerLoadError` with pip install group hint
 2. **Weights missing, lazy model** → `RestorerLoadError` with HF repo name
@@ -214,7 +214,7 @@ Assets fetched once into `tests/assets/` (gitignored). `conftest.py` session fix
 Tests that need assets are auto-skipped if assets are missing (same pattern as weights).
 
 | Asset | Source | License | Use |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `vid4/calendar/`, `vid4/city/`, `vid4/foliage/`, `vid4/walk/` | Vid4 benchmark dataset | Academic | Video SR inference tests |
 | `set5/` (baby, bird, butterfly, head, woman) | Set5 SR benchmark | Academic | Image restorer inference |
 | `set14/` (14 PNG images) | Set14 SR benchmark | Academic | Benchmarking |
@@ -277,7 +277,7 @@ Excluded from default `pytest` run — invoked with `pytest -m benchmark`.
 ## File Map
 
 | Action | File | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | Modify | `pyproject.toml` | Add `[sr]`, `[face]`, `[diffusion]`, `[extras]`, `[all]` groups |
 | Create | `restorax/cli/download_models.py` | `restorax download-models` subcommand |
 | Modify | `restorax/cli/__init__.py` | Register `download_models` command |
