@@ -46,6 +46,8 @@ benchmark_results/
 *.benchmark.json
 
 # ── Test artifacts ────────────────────────────────────────────────────────────
+tests/assets/
+tests/benchmark/results/*.json
 .pytest_cache/
 .coverage
 htmlcov/

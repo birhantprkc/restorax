@@ -21,6 +21,7 @@ from restorax.core.restorer import (
 )
 from restorax.core.registry import ModelRegistry
 
+pytest_plugins = ["tests.conftest_assets"]
 
 # ── Mock restorer ─────────────────────────────────────────────────────────────
 
@@ -124,3 +125,28 @@ def sample_frame() -> np.ndarray:
 @pytest.fixture
 def default_params() -> RestorerParams:
     return RestorerParams(scale=4, half_precision=False)
+
+
+def pytest_collection_modifyitems(config, items):
+    from pathlib import Path
+    try:
+        from restorax.config import settings
+        model_dir = Path(settings.model_dir)
+    except Exception:
+        model_dir = Path("models")
+
+    asset_dir = Path(__file__).parent / "assets"
+
+    for item in items:
+        for marker in item.iter_markers("requires_weights"):
+            model_name = marker.args[0] if marker.args else ""
+            weight_dir = model_dir / model_name
+            if not weight_dir.exists():
+                item.add_marker(
+                    pytest.mark.skip(
+                        reason=f"weights absent: {weight_dir}. Run: restorax download-models --model {model_name}"
+                    )
+                )
+        if item.get_closest_marker("requires_assets"):
+            if not asset_dir.exists() or not any(asset_dir.iterdir()):
+                item.add_marker(pytest.mark.skip(reason="test assets not downloaded"))
