@@ -99,12 +99,7 @@ class VRTRestorer(BaseRestorer):
     ) -> list[np.ndarray]:
         """Process a temporal window with VRT. Pads to _WINDOW_SIZE if shorter."""
         assert self._model is not None and self._device is not None
-
-        if hasattr(self._model, "forward"):
-            return self._vrt_inference(frames, params)
-
-        # Fallback: BasicVSR++-style simple temporal SR using available model
-        return self._fallback_inference(frames, params)
+        return self._vrt_inference(frames, params)
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
@@ -135,14 +130,6 @@ class VRTRestorer(BaseRestorer):
             result.append(frame_t)
         return result
 
-    def _fallback_inference(self, frames: list[np.ndarray], params: RestorerParams) -> list[np.ndarray]:
-        """Real-ESRGAN-style per-frame fallback when VRT model is unavailable."""
-        import cv2
-        return [
-            cv2.resize(f, (f.shape[1] * 4, f.shape[0] * 4), interpolation=cv2.INTER_CUBIC)
-            for f in frames
-        ]
-
     @staticmethod
     def _build_model(device: torch.device) -> torch.nn.Module:
         """Load VRT from BasicSR or fall back to a bicubic upsampler stub."""
@@ -171,8 +158,9 @@ class VRTRestorer(BaseRestorer):
             logger.info("VRT loaded from BasicSR arch")
             return model
         except (ImportError, Exception) as exc:
-            logger.info("VRT arch unavailable (%s) — using bicubic stub", exc)
-            return _VRTStub()
+            raise RestorerLoadError(
+                f"VRT arch unavailable: {exc}. Install basicsr: pip install basicsr"
+            ) from exc
 
 
 def _download_weights(model_dir: Path) -> Path:
@@ -185,12 +173,3 @@ def _download_weights(model_dir: Path) -> Path:
         raise RestorerLoadError(f"Cannot download VRT weights: {exc}") from exc
 
 
-class _VRTStub(torch.nn.Module):
-    """Bicubic upscale stub for testing without the VRT architecture."""
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        import torch.nn.functional as F
-        b, t, c, h, w = x.shape
-        x_flat = x.view(b * t, c, h, w)
-        up = F.interpolate(x_flat, scale_factor=4, mode="bicubic", align_corners=False)
-        return up.view(b, t, c, h * 4, w * 4)
