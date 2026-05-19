@@ -147,16 +147,13 @@ class DDColorRestorer(BaseRestorer):
         Load the DDColor encoder-decoder.
 
         DDColor uses a ConvNeXt/Swin encoder + colorization decoder.
-        We attempt to import from a local vendor directory first, then fall
-        back to a minimal compatible stub for testing environments.
+        Requires the vendored arch module (see PLAN.md: vendor from piddnad/DDColor).
         """
         try:
-            # Try vendored arch if present (see PLAN.md: vendor from piddnad/DDColor)
             from restorax.restorers.colorization.ddcolor_arch import DDColorArch  # type: ignore[import]
             model = DDColorArch(encoder_name="convnext-l")
-        except ImportError:
-            # Fallback: a thin U-Net stub that accepts 3-ch input and predicts 2-ch AB
-            model = _DDColorStub()
+        except ImportError as exc:
+            raise RestorerLoadError(f"DDColor unavailable: {exc}") from exc
 
         try:
             ckpt = torch.load(weight_path, map_location="cpu", weights_only=True)
@@ -194,23 +191,3 @@ class DDColorRestorer(BaseRestorer):
             local_dir=str(model_dir),
         )
         return Path(path)
-
-
-# ── Stub model (testing / no arch file present) ───────────────────────────────
-
-class _DDColorStub(torch.nn.Module):
-    """
-    Minimal 3→2 channel stub used when the full DDColor arch is not vendored.
-    Returns zero AB channels (grayscale output) — correct shape contract only.
-    Used in unit tests to avoid vendoring the full arch.
-    """
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.conv = torch.nn.Conv2d(3, 2, kernel_size=1)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return torch.zeros(x.shape[0], 2, x.shape[2], x.shape[3], device=x.device)
-
-    def load_state_dict(self, state_dict: dict, strict: bool = True) -> tuple:  # type: ignore[override]
-        return [], []
