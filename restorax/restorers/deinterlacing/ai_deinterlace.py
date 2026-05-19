@@ -6,18 +6,13 @@ broadcast TV, VHS, DVD) to progressive frames. Interlaced content shows
 horizontal combing artifacts on fast motion — alternating lines come from
 different moments in time.
 
-Two approaches:
+Uses a deformable convolution + self-attention architecture trained on
+synthetic interlacing. Reference: "A new multi-picture architecture for
+learned video deinterlacing and demosaicing" (Image and Vision Computing,
+2024). Superior on damaged or noisy interlaced sources.
 
-1. **YADIF via FFmpeg** (default) — classic adaptive deinterlacing using
-   the field-based interpolation algorithm. Fast, CPU-only, excellent for
-   clean sources. Uses an FFmpeg subprocess since YADIF is not available
-   as a standalone Python library.
-
-2. **AI deinterlacer** (when vendored) — a deformable convolution +
-   self-attention architecture trained on synthetic interlacing. Uses
-   reference: "A new multi-picture architecture for learned video
-   deinterlacing and demosaicing" (Image and Vision Computing, 2024).
-   Superior on damaged or noisy interlaced sources.
+Requires the vendored ``deinterlace_arch`` module (``DeinterlaceNet``).
+If the arch is not present, ``load()`` raises ``RestorerLoadError``.
 
 Autodetect interlacing: the restorer checks whether the source material
 is actually interlaced before processing. If not interlaced, frames are
@@ -34,6 +29,7 @@ import cv2
 import numpy as np
 import torch
 
+from restorax.core.exceptions import RestorerLoadError
 from restorax.core.restorer import (
     BaseRestorer,
     RestorerCapabilities,
@@ -46,17 +42,17 @@ logger = logging.getLogger(__name__)
 
 class AIDeinterlaceRestorer(BaseRestorer):
     """
-    Deinterlace video frames using YADIF (default) or a deep AI model.
+    Deinterlace video frames using a deep AI model (DeinterlaceNet).
 
-    Single-frame deinterlacing uses field-based interpolation.
-    Temporal deinterlacing (process_sequence) uses YADIF motion-adaptive
-    logic across consecutive fields for better motion handling.
+    Single-frame and sequence deinterlacing both use the vendored arch.
+    Raises ``RestorerLoadError`` at ``load()`` time if the vendored
+    ``deinterlace_arch`` module is not present.
     """
 
     def __init__(self) -> None:
+        self._model: torch.nn.Module | None = None
         self._device: torch.device | None = None
         self._loaded = False
-        self._use_ai = False
 
     @property
     def name(self) -> str:
@@ -71,22 +67,25 @@ class AIDeinterlaceRestorer(BaseRestorer):
             requires_temporal=False,
             min_vram_gb=0.0,
             scale_factor=1,
-            tags=["deinterlacing", "interlaced", "combing", "yadif", "broadcast", "vhs"],
+            tags=["deinterlacing", "interlaced", "combing", "ai", "broadcast", "vhs"],
         )
 
     # ── Lifecycle ─────────────────────────────────────────────────────────────
 
     def load(self, device: torch.device) -> None:
+        model = self._load_arch(device)
+        model.train(False)
+        self._model = model
         self._device = device
-        # Try to load AI model; fall back to YADIF
-        self._use_ai = self._try_load_ai_model()
         self._loaded = True
-        mode = "AI model" if self._use_ai else "YADIF (CPU)"
-        logger.info("AIDeinterlace loaded — mode: %s", mode)
+        logger.info("AIDeinterlace loaded on %s", device)
 
     def unload(self) -> None:
+        del self._model
+        self._model = None
         self._loaded = False
-        self._use_ai = False
+        if self._device and self._device.type == "cuda":
+            torch.cuda.empty_cache()
 
     # ── Inference ─────────────────────────────────────────────────────────────
 
@@ -98,27 +97,17 @@ class AIDeinterlaceRestorer(BaseRestorer):
         """
         if not self._is_interlaced(frame):
             return frame
-
-        if self._use_ai:
-            return self._ai_deinterlace_single(frame)
-
-        return self._yadif_single(frame)
+        return self._run_model(frame)
 
     def process_sequence(
         self,
         frames: list[np.ndarray],
         params: RestorerParams,
     ) -> list[np.ndarray]:
-        """Motion-adaptive deinterlacing using temporal context."""
-        # Check if any frame needs deinterlacing
+        """Deinterlace a sequence of frames using the AI model."""
         if not any(self._is_interlaced(f) for f in frames[:3]):
             return frames  # Not interlaced — skip
-
-        if self._use_ai:
-            return [self._ai_deinterlace_single(f) for f in frames]
-
-        # YADIF on the full sequence via FFmpeg for best motion handling
-        return self._yadif_sequence(frames)
+        return [self._run_model(f) for f in frames]
 
     # ── Detection ────────────────────────────────────────────────────────────
 
@@ -141,16 +130,7 @@ class AIDeinterlaceRestorer(BaseRestorer):
         combing_ratio = float(diff.mean()) / (float(vert_diff.mean()) + 1e-6)
         return combing_ratio > 1.8
 
-    # ── YADIF ─────────────────────────────────────────────────────────────────
-
-    @staticmethod
-    def _yadif_single(frame: np.ndarray) -> np.ndarray:
-        """Apply YADIF to a single frame via OpenCV field interpolation (no FFmpeg)."""
-        # Bob deinterlacing: double rows from the dominant field
-        h, w = frame.shape[:2]
-        # Extract even field and resize to full height
-        even_field = frame[0::2]
-        return cv2.resize(even_field, (w, h), interpolation=cv2.INTER_LINEAR)
+    # ── YADIF (sequence fallback only) ────────────────────────────────────────
 
     @staticmethod
     def _yadif_sequence(frames: list[np.ndarray]) -> list[np.ndarray]:
@@ -191,20 +171,40 @@ class AIDeinterlaceRestorer(BaseRestorer):
                 return output
         except Exception as exc:
             logger.warning("YADIF subprocess failed (%s) — using bob fallback", exc)
-            return [AIDeinterlaceRestorer._yadif_single(f) for f in frames]
+            h, w = frames[0].shape[:2]
+            return [
+                cv2.resize(f[0::2], (w, h), interpolation=cv2.INTER_LINEAR)
+                for f in frames
+            ]
 
-    # ── AI deinterlace ────────────────────────────────────────────────────────
+    # ── Internal ──────────────────────────────────────────────────────────────
+
+    def _run_model(self, frame: np.ndarray) -> np.ndarray:
+        """Run DeinterlaceNet inference on a single frame."""
+        assert self._model is not None and self._device is not None
+        h, w = frame.shape[:2]
+        tensor = (
+            torch.from_numpy(frame.astype(np.float32) / 255.0)
+            .permute(2, 0, 1)
+            .unsqueeze(0)
+            .to(self._device)
+        )
+        with torch.inference_mode():
+            out = self._model(tensor)  # 1 3 H W
+        result = out.squeeze(0).permute(1, 2, 0).cpu().numpy()
+        return (result * 255.0).clip(0, 255).astype(np.uint8)
 
     @staticmethod
-    def _ai_deinterlace_single(frame: np.ndarray) -> np.ndarray:
-        """Placeholder — delegates to AI model when vendored."""
-        return AIDeinterlaceRestorer._yadif_single(frame)
+    def _load_arch(device: torch.device) -> torch.nn.Module:
+        """Import DeinterlaceNet from the vendored arch module.
 
-    @staticmethod
-    def _try_load_ai_model() -> bool:
-        """Try to import the vendored AI deinterlacing arch. Returns True if successful."""
+        Raises RestorerLoadError if the arch is not present.
+        """
         try:
             from restorax.restorers.deinterlacing.deinterlace_arch import DeinterlaceNet  # type: ignore[import]
-            return True
-        except ImportError:
-            return False
+        except ImportError as exc:
+            raise RestorerLoadError(
+                f"AIDeinterlaceRestorer requires the vendored deinterlace_arch module "
+                f"(DeinterlaceNet) which is not installed: {exc}"
+            ) from exc
+        return DeinterlaceNet().to(device)
