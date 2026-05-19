@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import builtins
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -26,7 +25,7 @@ class TestWaifu2xRestorerMeta:
 
 
 class TestWaifu2xBuildModelRaisesOnMissingArch:
-    def test_raises_restorer_load_error_on_import_error(self):
+    def test_raises_restorer_load_error_on_arch_import_error(self):
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -41,19 +40,15 @@ class TestWaifu2xBuildModelRaisesOnMissingArch:
 
 
 class TestWaifu2xBuildModelRaisesOnMissingWeights:
-    def test_raises_restorer_load_error_when_weights_missing_and_download_fails(self, tmp_path):
-        """When weights file is absent and download raises, RestorerLoadError is raised."""
+    def test_raises_restorer_load_error_when_weights_absent_and_hub_unavailable(self, tmp_path):
+        """When weights file is absent and huggingface_hub is missing, RestorerLoadError is raised."""
 
-        # Provide a minimal UpConvNet stand-in so the arch import succeeds
         class _FakeUpConvNet(torch.nn.Module):
             def __init__(self, scale: int) -> None:
                 super().__init__()
 
         fake_arch = MagicMock()
         fake_arch.UpConvNet = _FakeUpConvNet
-
-        # Weight path points to a file that doesn't exist
-        weight_path = tmp_path / "waifu2x" / "waifu2x_x2.pth"
 
         real_import = builtins.__import__
 
@@ -65,12 +60,10 @@ class TestWaifu2xBuildModelRaisesOnMissingWeights:
             return real_import(name, *args, **kwargs)
 
         device = torch.device("cpu")
+        # Point model_dir at tmp_path so weight_path will not exist
         with (
             patch("builtins.__import__", side_effect=mock_import),
-            patch(
-                "restorax.restorers.super_resolution.waifu2x.Path",
-                return_value=weight_path,
-            ),
+            patch("restorax.config.settings.model_dir", str(tmp_path)),
         ):
-            with pytest.raises(RestorerLoadError):
+            with pytest.raises(RestorerLoadError, match="Failed to download waifu2x weights"):
                 Waifu2xRestorer._build_model(device)
