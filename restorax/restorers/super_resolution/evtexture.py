@@ -21,8 +21,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 
+from restorax.core.exceptions import RestorerLoadError
 from restorax.core.restorer import (
     BaseRestorer,
     RestorerCapabilities,
@@ -129,13 +129,4 @@ class EvTextureRestorer(BaseRestorer):
             model.load_state_dict(ckpt.get("params", ckpt), strict=False)
             return model.eval().to(device)
         except (ImportError, Exception) as exc:
-            logger.info("EvTexture arch unavailable (%s) — bicubic stub", exc)
-            return _EvTextureStub()
-
-
-class _EvTextureStub(torch.nn.Module):
-    def forward(self, x: torch.Tensor, events: torch.Tensor) -> torch.Tensor:
-        b, t, c, h, w = x.shape
-        x_flat = x.view(b * t, c, h, w)
-        return F.interpolate(x_flat, scale_factor=4, mode="bicubic",
-                             align_corners=False).view(b, t, c, h * 4, w * 4)
+            raise RestorerLoadError(f"EvTexture arch unavailable: {exc}") from exc
