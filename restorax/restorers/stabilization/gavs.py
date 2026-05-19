@@ -68,8 +68,13 @@ class GaVSRestorer(BaseRestorer):
             self._load_fallback(device)
         self._device = device
         self._loaded = True
-        mode = "GaVS (3D)" if self._using_gavs else "OpenCV 2D fallback"
-        logger.info("GaVS loaded — mode: %s on %s", mode, device)
+        if self._using_gavs:
+            logger.info("GaVS loaded — mode: GaVS (3D) on %s", device)
+        else:
+            logger.warning(
+                "GAVS arch not yet publicly released — using OpenCV stabilization fallback. "
+                "See: https://arxiv.org/abs/2407.06009"
+            )
 
     def unload(self) -> None:
         del self._model
