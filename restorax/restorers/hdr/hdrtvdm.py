@@ -106,12 +106,7 @@ class HDRTVDMRestorer(BaseRestorer):
         rendering of the HDR content via a simple display tone map.
         """
         assert self._model is not None and self._device is not None
-
-        if hasattr(self._model, "forward_hdr"):
-            return self._model_inference(frame, params)
-
-        # Fallback: gamma expansion simulation (not a real HDR conversion)
-        return self._gamma_expansion_stub(frame)
+        return self._model_inference(frame, params)
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
@@ -122,17 +117,6 @@ class HDRTVDMRestorer(BaseRestorer):
         # Display tone-map back to 8-bit for pipeline preview
         hdr_np = hdr.squeeze(0).permute(1, 2, 0).float().clamp(0, 1).cpu().numpy()
         return (hdr_np * 255).astype(np.uint8)
-
-    @staticmethod
-    def _gamma_expansion_stub(frame: np.ndarray) -> np.ndarray:
-        """
-        Stub SDR→HDR: apply inverse sRGB gamma and boost highlights.
-        Not a real HDR conversion — produces visually plausible result for testing.
-        """
-        linear = (frame.astype(np.float32) / 255.0) ** 2.2
-        # Boost highlights nonlinearly (simulate highlight expansion)
-        boosted = np.where(linear > 0.5, linear + (linear - 0.5) * 0.5, linear)
-        return (np.clip(boosted, 0, 1) * 255).astype(np.uint8)
 
     @staticmethod
     def _build_model(device: torch.device) -> object:
@@ -150,9 +134,10 @@ class HDRTVDMRestorer(BaseRestorer):
             model.eval().to(device)
             logger.info("HDRTVDM arch loaded from vendored module")
             return model
-        except ImportError:
-            logger.info("HDRTVDM arch not vendored — using gamma expansion stub")
-            return _HDRStub()
+        except ImportError as exc:
+            raise RestorerLoadError(
+                "HDRTVDM architecture module not vendored; cannot load model"
+            ) from exc
 
 
 def _download_weights(model_dir: Path) -> Path:
@@ -165,6 +150,3 @@ def _download_weights(model_dir: Path) -> Path:
         raise RestorerLoadError(f"Cannot download HDRTVDM weights: {exc}") from exc
 
 
-class _HDRStub:
-    """Stub with the model call convention — used when arch not vendored."""
-    pass
