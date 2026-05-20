@@ -169,8 +169,9 @@ class RIFERestorer(BaseRestorer):
             logger.info("RIFE IFNet loaded with vendored arch")
             return _RIFEIFNetWrapper(model, device)
         except Exception as exc:
-            logger.warning("Could not load RIFE arch (%s) — using blend fallback", exc)
-            return _RIFEBlendStub()
+            raise RestorerLoadError(
+                f"RIFE arch unavailable: {exc}. Ensure rife_arch is vendored."
+            ) from exc
 
     def _try_resolve_weight_path(self) -> Path | None:
         from restorax.config import settings
@@ -215,8 +216,3 @@ class _RIFEIFNetWrapper:
         return merged
 
 
-class _RIFEBlendStub:
-    """Linear-blend fallback — correct contract, lower quality."""
-
-    def inference(self, img0: torch.Tensor, img1: torch.Tensor, timestep: float = 0.5) -> torch.Tensor:
-        return img0 * (1 - timestep) + img1 * timestep
