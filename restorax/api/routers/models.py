@@ -1,7 +1,11 @@
 """GET /models — list available restorers and their capabilities."""
+from __future__ import annotations
+
 from fastapi import APIRouter
 
 from restorax.api.schemas.model import ModelListResponse, RestorerInfo
+from restorax.audio.restorer import AudioRestorerCapabilities
+from restorax.core.restorer import RestorerCapabilities
 from restorax.restorers.artifact_removal.scratch_removal import ScratchRemovalRestorer
 from restorax.restorers.face_restoration.dicface import DicFaceRestorer
 from restorax.restorers.super_resolution.evtexture import EvTextureRestorer
@@ -23,6 +27,9 @@ from restorax.restorers.super_resolution.real_esrgan import RealESRGANx4Restorer
 from restorax.restorers.super_resolution.tdm import TDMRestorer
 from restorax.restorers.super_resolution.upscale_a_video import UpscaleAVideoRestorer
 from restorax.restorers.super_resolution.vrt import VRTRestorer
+from restorax.restorers.audio.demucs import DemucsRestorer
+from restorax.restorers.audio.voicefixer import VoiceFixerRestorer
+from restorax.restorers.audio.rnnoise import RNNoiseRestorer
 
 router = APIRouter(prefix="/models", tags=["models"])
 
@@ -34,6 +41,7 @@ _RESTORER_CLASSES = [
     DDColorRestorer, RIFERestorer,
     ScratchRemovalRestorer, HDRTVDMRestorer, VideoStabilizationRestorer,
     GaVSRestorer, AIDeinterlaceRestorer,
+    DemucsRestorer, VoiceFixerRestorer, RNNoiseRestorer,
 ]
 
 
@@ -43,17 +51,33 @@ async def list_models() -> ModelListResponse:
     for cls in _RESTORER_CLASSES:
         instance = object.__new__(cls)
         caps = cls.capabilities.fget(instance)  # type: ignore[attr-defined]
-        restorers.append(
-            RestorerInfo(
-                name=cls.name.fget(instance),  # type: ignore[attr-defined]
-                category=caps.category.value,
-                input_color_space=caps.input_color_space,
-                output_color_space=caps.output_color_space,
-                requires_temporal=caps.requires_temporal,
-                min_vram_gb=caps.min_vram_gb,
-                scale_factor=caps.scale_factor,
-                tags=caps.tags,
-                loaded=False,  # Phase 3: wire into live registry
+
+        if isinstance(caps, RestorerCapabilities):
+            # Video restorer (color space aware)
+            restorers.append(
+                RestorerInfo(
+                    name=cls.name.fget(instance),  # type: ignore[attr-defined]
+                    category=caps.category.value,
+                    input_color_space=caps.input_color_space,
+                    output_color_space=caps.output_color_space,
+                    requires_temporal=caps.requires_temporal,
+                    min_vram_gb=caps.min_vram_gb,
+                    scale_factor=caps.scale_factor,
+                    tags=caps.tags,
+                    loaded=False,  # Phase 3: wire into live registry
+                )
             )
-        )
+        elif isinstance(caps, AudioRestorerCapabilities):
+            # Audio restorer (sample rate aware)
+            restorers.append(
+                RestorerInfo(
+                    name=cls.name.fget(instance),  # type: ignore[attr-defined]
+                    category=caps.category.value,
+                    min_ram_gb=caps.min_ram_gb,
+                    supports_stereo=caps.supports_stereo,
+                    sample_rates=caps.sample_rates,
+                    tags=caps.tags,
+                    loaded=False,  # Phase 3: wire into live registry
+                )
+            )
     return ModelListResponse(restorers=restorers)
