@@ -1,9 +1,7 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:  # temporarily disabled; restore original trigger to re-enable
 
 jobs:
   publish-pypi:
