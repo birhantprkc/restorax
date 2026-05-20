@@ -17,11 +17,10 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import cv2
 import numpy as np
 import torch
-import torch.nn.functional as F
 
+from restorax.core.exceptions import RestorerLoadError
 from restorax.core.restorer import (
     BaseRestorer,
     RestorerCapabilities,
@@ -96,14 +95,7 @@ class TDMRestorer(BaseRestorer):
         tasks = list(params.extra.get("tasks", _DEFAULT_TASKS))
         steps = int(params.extra.get("num_inference_steps", _DEFAULT_STEPS))
         guidance = float(params.extra.get("guidance_scale", 7.5))
-
-        if hasattr(self._pipe, "__call__"):
-            try:
-                return self._diffusion_inference(frames, tasks, steps, guidance)
-            except Exception as exc:
-                logger.warning("TDM inference failed (%s) — using stub", exc)
-
-        return self._stub_upscale(frames)
+        return self._diffusion_inference(frames, tasks, steps, guidance)
 
     def _diffusion_inference(
         self, frames: list[np.ndarray], tasks: list[str], steps: int, guidance: float
@@ -117,16 +109,14 @@ class TDMRestorer(BaseRestorer):
         return [np.array(img) for img in result.frames]
 
     @staticmethod
-    def _stub_upscale(frames: list[np.ndarray]) -> list[np.ndarray]:
-        return [
-            cv2.resize(f, (f.shape[1] * 4, f.shape[0] * 4), interpolation=cv2.INTER_NEAREST)
-            for f in frames
-        ]
-
-    @staticmethod
     def _build_pipeline(device: torch.device) -> object:
         try:
             from restorax.restorers.super_resolution.tdm_arch import TDMPipeline  # type: ignore[import]
+        except ImportError as exc:
+            raise RestorerLoadError(
+                f"TDM requires diffusers: pip install 'restorax[diffusion]'"
+            ) from exc
+        try:
             from restorax.config import settings
             weight_dir = Path(settings.model_dir) / "tdm"
             if not weight_dir.exists():
@@ -135,11 +125,5 @@ class TDMRestorer(BaseRestorer):
             pipe = TDMPipeline.from_pretrained(str(weight_dir)).to(device)
             logger.info("TDM pipeline loaded from vendored module")
             return pipe
-        except (ImportError, Exception) as exc:
-            logger.info("TDM arch unavailable (%s) — using NN upscale stub", exc)
-            return _TDMStub()
-
-
-class _TDMStub:
-    """Nearest-neighbour 4× stub — placeholder until arch is vendored."""
-    pass
+        except Exception as exc:
+            raise RestorerLoadError(f"TDM failed to load: {exc}") from exc

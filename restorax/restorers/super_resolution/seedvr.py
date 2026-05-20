@@ -18,10 +18,10 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import cv2
 import numpy as np
 import torch
 
+from restorax.core.exceptions import RestorerLoadError
 from restorax.core.restorer import (
     BaseRestorer,
     RestorerCapabilities,
@@ -92,23 +92,21 @@ class SeedVRRestorer(BaseRestorer):
         steps = int(params.extra.get("num_inference_steps", _DEFAULT_STEPS))
         guidance = float(params.extra.get("guidance_scale", 7.5))
 
-        if hasattr(self._pipe, "__call__"):
-            try:
-                from PIL import Image
-                pil_frames = [Image.fromarray(f) for f in frames]
-                result = self._pipe(image=pil_frames, num_inference_steps=steps,  # type: ignore[operator]
-                                    guidance_scale=guidance)
-                return [np.array(img) for img in result.frames]
-            except Exception as exc:
-                logger.warning("SeedVR inference failed (%s) — using stub", exc)
-
-        return [cv2.resize(f, (f.shape[1] * 4, f.shape[0] * 4),
-                           interpolation=cv2.INTER_NEAREST) for f in frames]
+        from PIL import Image
+        pil_frames = [Image.fromarray(f) for f in frames]
+        result = self._pipe(image=pil_frames, num_inference_steps=steps,  # type: ignore[operator]
+                            guidance_scale=guidance)
+        return [np.array(img) for img in result.frames]
 
     @staticmethod
     def _build_pipeline(device: torch.device) -> object:
         try:
             from restorax.restorers.super_resolution.seedvr_arch import SeedVRPipeline  # type: ignore[import]
+        except ImportError as exc:
+            raise RestorerLoadError(
+                f"SeedVR requires diffusers: pip install 'restorax[diffusion]'"
+            ) from exc
+        try:
             from restorax.config import settings
             weight_dir = Path(settings.model_dir) / "seedvr"
             if not weight_dir.exists():
@@ -117,10 +115,5 @@ class SeedVRRestorer(BaseRestorer):
             pipe = SeedVRPipeline.from_pretrained(str(weight_dir)).to(device)
             logger.info("SeedVR pipeline loaded")
             return pipe
-        except (ImportError, Exception) as exc:
-            logger.info("SeedVR arch unavailable (%s) — NN stub", exc)
-            return _SeedVRStub()
-
-
-class _SeedVRStub:
-    pass
+        except Exception as exc:
+            raise RestorerLoadError(f"SeedVR failed to load: {exc}") from exc
