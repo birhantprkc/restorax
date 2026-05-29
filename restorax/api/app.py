@@ -3,9 +3,9 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 
 from restorax.api.middleware import RequestIDMiddleware, TimingMiddleware
 from restorax.api.routers import jobs, models, pipelines, ws
@@ -52,6 +52,35 @@ def create_app() -> FastAPI:
     app.include_router(models.router)
     app.include_router(pipelines.router)
     app.include_router(ws.router)
+
+    # ── Exception handlers ────────────────────────────────────────────────────
+    from restorax.core.exceptions import (
+        JobNotFoundError,
+        PipelineConfigError,
+        RestoraXError,
+        RestorerLoadError,
+        RestorerNotFoundError,
+    )
+
+    @app.exception_handler(RestorerLoadError)
+    async def _handle_restorer_load_error(request: Request, exc: RestorerLoadError) -> JSONResponse:
+        return JSONResponse(status_code=503, content={"error": "restorer_load_error", "message": str(exc)})
+
+    @app.exception_handler(RestorerNotFoundError)
+    async def _handle_restorer_not_found(request: Request, exc: RestorerNotFoundError) -> JSONResponse:
+        return JSONResponse(status_code=404, content={"error": "restorer_not_found", "message": str(exc)})
+
+    @app.exception_handler(JobNotFoundError)
+    async def _handle_job_not_found(request: Request, exc: JobNotFoundError) -> JSONResponse:
+        return JSONResponse(status_code=404, content={"error": "job_not_found", "message": str(exc)})
+
+    @app.exception_handler(PipelineConfigError)
+    async def _handle_pipeline_config_error(request: Request, exc: PipelineConfigError) -> JSONResponse:
+        return JSONResponse(status_code=422, content={"error": "pipeline_config_error", "message": str(exc)})
+
+    @app.exception_handler(RestoraXError)
+    async def _handle_restorax_error(request: Request, exc: RestoraXError) -> JSONResponse:
+        return JSONResponse(status_code=500, content={"error": "internal_error", "message": str(exc)})
 
     # ── Prometheus /metrics ───────────────────────────────────────────────────
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
