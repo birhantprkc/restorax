@@ -33,8 +33,8 @@ function DraggableItem({
         e.dataTransfer.effectAllowed = "move";
       }}
       className={cn(
-        "cursor-grab rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm",
-        "hover:border-[var(--color-ring)] active:cursor-grabbing",
+        "cursor-grab rounded-md border border-border bg-card px-3 py-2 text-sm",
+        "hover:border-ring active:cursor-grabbing",
       )}
     >
       {children}
@@ -66,9 +66,9 @@ export function Palette() {
   }, {});
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-[var(--color-border)] p-4">
+    <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border p-4">
       <div>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Structure
         </h2>
         <div className="flex flex-col gap-2">
@@ -82,7 +82,7 @@ export function Palette() {
 
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Restorers
           </h2>
           {failed && (
@@ -94,7 +94,7 @@ export function Palette() {
         <div className="flex flex-col gap-3">
           {Object.entries(byCategory).map(([category, items]) => (
             <div key={category}>
-              <p className="mb-1 text-[11px] font-medium capitalize text-[var(--color-muted-foreground)]">
+              <p className="mb-1 text-[11px] font-medium capitalize text-muted-foreground">
                 {category}
               </p>
               <div className="flex flex-col gap-2">

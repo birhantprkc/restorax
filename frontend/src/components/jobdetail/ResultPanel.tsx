@@ -27,7 +27,7 @@ export function ResultPanel({ job }: ResultPanelProps) {
           <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
             {metrics.map(([key, value]) => (
               <div key={key} className="flex flex-col">
-                <dt className="text-[var(--color-muted-foreground)]">{key}</dt>
+                <dt className="text-muted-foreground">{key}</dt>
                 <dd className="font-mono tabular-nums">{value}</dd>
               </div>
             ))}

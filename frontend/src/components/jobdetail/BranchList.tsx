@@ -18,17 +18,17 @@ export function BranchList({ branches }: BranchListProps) {
         {branches.map((b) => (
           <div key={b.branch_index} className="space-y-1.5">
             <div className="flex items-center justify-between gap-2 text-sm">
-              <span className="font-mono text-[var(--color-foreground)]">
+              <span className="font-mono text-foreground">
                 {b.name || b.node_id || `branch ${b.branch_index}`}
               </span>
               <div className="flex items-center gap-2">
                 <Badge variant={statusVariant(b.status)}>{b.status}</Badge>
-                <span className="tabular-nums text-[var(--color-muted-foreground)]">
+                <span className="tabular-nums text-muted-foreground">
                   {Math.round(b.progress * 100)}%
                 </span>
               </div>
             </div>
-            <Progress value={b.progress} />
+            <Progress value={b.progress * 100} />
           </div>
         ))}
       </CardContent>

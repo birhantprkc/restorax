@@ -48,9 +48,9 @@ export function MergePanel({ jobId, branches, onMerged }: MergePanelProps) {
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-4">
           <label className="flex items-center gap-2 text-sm">
-            <span className="text-[var(--color-muted-foreground)]">Strategy</span>
+            <span className="text-muted-foreground">Strategy</span>
             <select
-              className="rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               value={strategy}
               onChange={(e) => setStrategy(e.target.value as Strategy)}
             >
@@ -61,9 +61,9 @@ export function MergePanel({ jobId, branches, onMerged }: MergePanelProps) {
 
           {strategy === "select" && (
             <label className="flex items-center gap-2 text-sm">
-              <span className="text-[var(--color-muted-foreground)]">Branch</span>
+              <span className="text-muted-foreground">Branch</span>
               <select
-                className="rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={branchIndex}
                 onChange={(e) => setBranchIndex(Number(e.target.value))}
               >
@@ -82,10 +82,10 @@ export function MergePanel({ jobId, branches, onMerged }: MergePanelProps) {
         </div>
 
         {error && (
-          <p className="text-sm text-[var(--color-destructive)]">{error}</p>
+          <p className="text-sm text-destructive">{error}</p>
         )}
         {success && (
-          <p className="text-sm text-[var(--color-success)]">Branches merged.</p>
+          <p className="text-sm text-success">Branches merged.</p>
         )}
       </CardContent>
     </Card>

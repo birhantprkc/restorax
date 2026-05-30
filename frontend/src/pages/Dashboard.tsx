@@ -79,7 +79,7 @@ export default function Dashboard() {
       <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)]">
+          <p className="text-sm text-muted-foreground">
             Launch a restoration or track recent jobs
           </p>
         </div>
@@ -100,8 +100,8 @@ export default function Dashboard() {
       />
 
       {error && (
-        <Card className="mb-6 border-[var(--color-destructive)]/40">
-          <CardContent className="pt-5 text-sm text-[var(--color-destructive)]">
+        <Card className="mb-6 border-destructive/40">
+          <CardContent className="pt-5 text-sm text-destructive">
             Something went wrong: {error}
           </CardContent>
         </Card>
@@ -112,7 +112,7 @@ export default function Dashboard() {
       </div>
 
       <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium text-[var(--color-muted-foreground)]">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
           Quick launch
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -129,12 +129,12 @@ export default function Dashboard() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-medium text-[var(--color-muted-foreground)]">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
           Recent jobs
         </h2>
         {loading && jobs.length === 0 && !error ? (
           <Card>
-            <CardContent className="py-12 text-center text-sm text-[var(--color-muted-foreground)]">
+            <CardContent className="py-12 text-center text-sm text-muted-foreground">
               Loading jobs…
             </CardContent>
           </Card>
