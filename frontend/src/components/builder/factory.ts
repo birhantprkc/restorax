@@ -36,3 +36,14 @@ export function createNode(payload: PaletteDragPayload, position: XYPosition): B
     data: dataFor(payload),
   };
 }
+
+/** Clone a node with a fresh id, offset slightly so it doesn't overlap. */
+export function duplicateNode(node: BuilderNode): BuilderNode {
+  return {
+    id: nextId(node.type ?? "node"),
+    type: node.type,
+    position: { x: node.position.x + 40, y: node.position.y + 40 },
+    data: { ...node.data },
+    selected: false,
+  };
+}

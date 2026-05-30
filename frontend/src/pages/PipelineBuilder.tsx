@@ -11,18 +11,21 @@ import {
   useReactFlow,
   type Connection,
   type Edge,
+  type XYPosition,
 } from "@xyflow/react";
-import { Undo2, Redo2, Upload, Download } from "lucide-react";
+import { Undo2, Redo2, Upload, Download, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { createDag } from "@/lib/api";
+import { createDag, fetchModels } from "@/lib/api";
 import { Palette } from "@/components/builder/Palette";
 import { ConfigPanel } from "@/components/builder/ConfigPanel";
+import { NodeSearch } from "@/components/builder/NodeSearch";
+import { CanvasMenu, type CanvasMenuState } from "@/components/builder/CanvasMenu";
 import { nodeTypes } from "@/components/builder/nodes";
-import { createNode } from "@/components/builder/factory";
+import { createNode, duplicateNode } from "@/components/builder/factory";
 import { serializeDag, slugify } from "@/components/builder/serialize";
 import { useUndoRedo } from "@/components/builder/useUndoRedo";
 import { downloadWorkflow, parseWorkflow } from "@/components/builder/workflow";
@@ -65,7 +68,7 @@ type SaveState =
 function Builder() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -165,6 +168,73 @@ function Builder() {
     [snapshot, setNodes, setEdges],
   );
 
+  // ── Node search + context menu ──────────────────────────────────────────────
+  const [restorers, setRestorers] = useState<string[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [pendingPos, setPendingPos] = useState<XYPosition | null>(null);
+  const [menu, setMenu] = useState<CanvasMenuState | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchModels()
+      .then((m) => alive && setRestorers(m.map((r) => r.name)))
+      .catch(() => alive && setRestorers([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const addNode = useCallback(
+    (payload: PaletteDragPayload, position: XYPosition) => {
+      snapshot();
+      setNodes((nds) => nds.concat(createNode(payload, position)));
+    },
+    [snapshot, setNodes],
+  );
+
+  const openSearchAt = useCallback((flowPosition: XYPosition) => {
+    setPendingPos(flowPosition);
+    setSearchOpen(true);
+  }, []);
+
+  const onPaneContextMenu = useCallback(
+    (e: React.MouseEvent | MouseEvent) => {
+      e.preventDefault();
+      const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      setMenu({ x: e.clientX, y: e.clientY, flowPosition });
+    },
+    [screenToFlowPosition],
+  );
+
+  const onNodeContextMenu = useCallback(
+    (e: React.MouseEvent, node: BuilderNode) => {
+      e.preventDefault();
+      const flowPosition = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      setMenu({ x: e.clientX, y: e.clientY, flowPosition, nodeId: node.id });
+    },
+    [screenToFlowPosition],
+  );
+
+  const duplicate = useCallback(
+    (nodeId: string) => {
+      const target = nodes.find((n) => n.id === nodeId);
+      if (!target) return;
+      snapshot();
+      setNodes((nds) => nds.concat(duplicateNode(target)));
+    },
+    [nodes, snapshot, setNodes],
+  );
+
+  const deleteNode = useCallback(
+    (nodeId: string) => {
+      snapshot();
+      setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+      setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+      setSelectedId((id) => (id === nodeId ? null : id));
+    },
+    [snapshot, setNodes, setEdges],
+  );
+
   const patchNode = useCallback(
     (id: string, patch: Partial<BuilderNodeData>) => {
       setNodes((nds) =>
@@ -233,6 +303,16 @@ function Builder() {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => openSearchAt(screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 }))}
+            title="Add node (double-click canvas)"
+          >
+            <Plus />
+            Add node
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => fileInputRef.current?.click()}
             title="Import workflow (.json)"
           >
@@ -273,7 +353,15 @@ function Builder() {
 
       <div className="flex min-h-0 flex-1">
         <Palette />
-        <div ref={wrapperRef} className="min-w-0 flex-1" onDragOver={onDragOver} onDrop={onDrop}>
+        <div
+          ref={wrapperRef}
+          className="min-w-0 flex-1"
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          onDoubleClick={(e) =>
+            openSearchAt(screenToFlowPosition({ x: e.clientX, y: e.clientY }))
+          }
+        >
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -285,7 +373,11 @@ function Builder() {
             onNodesDelete={snapshot}
             onEdgesDelete={snapshot}
             onSelectionChange={({ nodes: sel }) => setSelectedId(sel[0]?.id ?? null)}
+            onPaneContextMenu={onPaneContextMenu}
+            onNodeContextMenu={onNodeContextMenu}
+            onPaneClick={() => setMenu(null)}
             deleteKeyCode={["Backspace", "Delete"]}
+            zoomOnDoubleClick={false}
             fitView
             colorMode="dark"
           >
@@ -295,6 +387,30 @@ function Builder() {
           </ReactFlow>
         </div>
         <ConfigPanel node={selectedNode} onChange={patchNode} />
+
+        <NodeSearch
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          restorers={restorers}
+          onAdd={(payload) =>
+            addNode(
+              payload,
+              pendingPos ??
+                screenToFlowPosition({
+                  x: window.innerWidth / 2,
+                  y: window.innerHeight / 2,
+                }),
+            )
+          }
+        />
+        <CanvasMenu
+          menu={menu}
+          onClose={() => setMenu(null)}
+          onAddNode={openSearchAt}
+          onDuplicate={duplicate}
+          onDelete={deleteNode}
+          onFitView={() => fitView()}
+        />
       </div>
     </div>
   );
