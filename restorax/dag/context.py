@@ -24,14 +24,8 @@ class ProgressEmitter:
 
     def __init__(self, job_id: str, redis_url: str) -> None:
         self._job_id = job_id
-        self._redis_url = redis_url
-        self._redis: Any = None
-
-    def _get_redis(self) -> Any:
-        if self._redis is None:
-            import redis as _redis
-            self._redis = _redis.from_url(self._redis_url, decode_responses=True)
-        return self._redis
+        import redis as _redis
+        self._redis = _redis.from_url(redis_url, decode_responses=True)
 
     def emit(
         self,
@@ -48,7 +42,7 @@ class ProgressEmitter:
             "status": status,
         })
         try:
-            self._get_redis().publish(f"{self._CHANNEL_PREFIX}{self._job_id}", payload)
+            self._redis.publish(f"{self._CHANNEL_PREFIX}{self._job_id}", payload)
         except Exception as exc:
             logger.warning("ProgressEmitter publish failed: %s", exc)
 

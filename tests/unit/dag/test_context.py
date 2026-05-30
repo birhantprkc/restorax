@@ -12,7 +12,7 @@ def test_progress_emitter_publishes_to_redis():
 
         mock_redis.publish.assert_called_once()
         channel, payload_str = mock_redis.publish.call_args[0]
-        assert "job-123" in channel
+        assert channel == "restorax:job_progress:job-123"
 
         import json
         payload = json.loads(payload_str)
