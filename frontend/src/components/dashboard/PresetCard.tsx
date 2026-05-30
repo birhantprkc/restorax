@@ -19,11 +19,11 @@ export function PresetCard({ preset, onClick, uploading = false, disabled = fals
       disabled={disabled}
       className="group text-left focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
     >
-      <Card className="h-full transition-colors group-hover:border-[var(--color-primary)]/50 group-focus-visible:ring-2 group-focus-visible:ring-[var(--color-ring)]">
+      <Card className="h-full transition-colors group-hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-ring">
         <CardContent className="flex flex-col gap-3 pt-5">
           <span
             className={cn(
-              "flex size-10 items-center justify-center rounded-lg bg-[var(--color-secondary)]",
+              "flex size-10 items-center justify-center rounded-lg bg-secondary",
               preset.accent,
             )}
           >
@@ -35,7 +35,7 @@ export function PresetCard({ preset, onClick, uploading = false, disabled = fals
           </span>
           <div className="space-y-1">
             <p className="text-sm font-medium leading-tight">{preset.title}</p>
-            <p className="text-xs text-[var(--color-muted-foreground)]">
+            <p className="text-xs text-muted-foreground">
               {uploading ? "Uploading…" : preset.description}
             </p>
           </div>

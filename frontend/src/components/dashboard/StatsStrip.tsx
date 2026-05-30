@@ -21,9 +21,9 @@ export function StatsStrip({ jobs }: StatsStripProps) {
   const completed = jobs.filter((j) => j.status === "completed").length;
 
   const stats: Stat[] = [
-    { label: "Total jobs", value: jobs.length, icon: Layers, accent: "text-[var(--color-primary)]" },
-    { label: "Running", value: running, icon: Loader2, accent: "text-[var(--color-warning)]" },
-    { label: "Completed", value: completed, icon: CheckCircle2, accent: "text-[var(--color-success)]" },
+    { label: "Total jobs", value: jobs.length, icon: Layers, accent: "text-primary" },
+    { label: "Running", value: running, icon: Loader2, accent: "text-warning" },
+    { label: "Completed", value: completed, icon: CheckCircle2, accent: "text-success" },
   ];
 
   return (
@@ -35,7 +35,7 @@ export function StatsStrip({ jobs }: StatsStripProps) {
             <CardContent className="flex items-center gap-3 pt-5">
               <span
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-lg bg-[var(--color-secondary)]",
+                  "flex size-9 items-center justify-center rounded-lg bg-secondary",
                   s.accent,
                 )}
               >
@@ -43,7 +43,7 @@ export function StatsStrip({ jobs }: StatsStripProps) {
               </span>
               <div>
                 <p className="text-xl font-semibold tabular-nums leading-none">{s.value}</p>
-                <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">{s.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
               </div>
             </CardContent>
           </Card>

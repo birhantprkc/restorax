@@ -103,10 +103,10 @@ function Builder() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] px-6 py-3">
+      <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Pipeline Builder</h1>
-          <p className="text-xs text-[var(--color-muted-foreground)]">
+          <p className="text-xs text-muted-foreground">
             Drag restorers onto the canvas, wire up branches, and save a DAG.
           </p>
         </div>
@@ -120,7 +120,7 @@ function Builder() {
             </Badge>
           )}
           <input
-            className="h-9 w-56 rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+            className="h-9 w-56 rounded-md border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="DAG name"

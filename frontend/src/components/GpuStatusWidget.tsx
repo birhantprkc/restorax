@@ -33,31 +33,31 @@ export function GpuStatusWidget({ className }: { className?: string }) {
   const online = !error && health && health.workers > 0;
 
   return (
-    <div className={cn("rounded-lg border border-[var(--color-border)] p-3 text-sm", className)}>
+    <div className={cn("rounded-lg border border-border p-3 text-sm", className)}>
       <div className="mb-2 flex items-center gap-2 font-medium">
-        <Cpu className="size-4 text-[var(--color-primary)]" />
+        <Cpu className="size-4 text-primary" />
         Workers
         <span
           className={cn(
             "ml-auto size-2 rounded-full",
-            online ? "bg-[var(--color-success)]" : "bg-[var(--color-destructive)]",
+            online ? "bg-success" : "bg-destructive",
           )}
         />
       </div>
       {!health && !error ? (
-        <div className="flex items-center gap-2 text-[var(--color-muted-foreground)]">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="size-3 animate-spin" /> connecting…
         </div>
       ) : error ? (
-        <div className="text-[var(--color-muted-foreground)]">API unreachable</div>
+        <div className="text-muted-foreground">API unreachable</div>
       ) : (
-        <dl className="grid grid-cols-2 gap-x-2 gap-y-1 text-[var(--color-muted-foreground)]">
+        <dl className="grid grid-cols-2 gap-x-2 gap-y-1 text-muted-foreground">
           <dt>Online</dt>
-          <dd className="text-right text-[var(--color-foreground)]">{health!.workers}</dd>
+          <dd className="text-right text-foreground">{health!.workers}</dd>
           <dt>Active</dt>
-          <dd className="text-right text-[var(--color-foreground)]">{health!.active_tasks}</dd>
+          <dd className="text-right text-foreground">{health!.active_tasks}</dd>
           <dt>Queued</dt>
-          <dd className="text-right text-[var(--color-foreground)]">{health!.queued_tasks}</dd>
+          <dd className="text-right text-foreground">{health!.queued_tasks}</dd>
         </dl>
       )}
     </div>

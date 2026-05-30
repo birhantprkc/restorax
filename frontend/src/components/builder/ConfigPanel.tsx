@@ -10,9 +10,9 @@ import type {
 } from "./types";
 
 const fieldCls =
-  "h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]";
+  "h-9 w-full rounded-md border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const labelCls =
-  "mb-1 block text-xs font-medium text-[var(--color-muted-foreground)]";
+  "mb-1 block text-xs font-medium text-muted-foreground";
 
 interface Props {
   node: BuilderNode | null;
@@ -34,12 +34,12 @@ export function ConfigPanel({ node, onChange }: Props) {
   }, []);
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col overflow-y-auto border-l border-[var(--color-border)] p-4">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+    <aside className="flex w-72 shrink-0 flex-col overflow-y-auto border-l border-border p-4">
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Node Config
       </h2>
       {!node ? (
-        <p className="text-sm text-[var(--color-muted-foreground)]">
+        <p className="text-sm text-muted-foreground">
           Select a node to edit its settings.
         </p>
       ) : (
@@ -63,7 +63,7 @@ export function ConfigPanel({ node, onChange }: Props) {
             node.data.kind === "pass" ||
             node.data.kind === "video_input" ||
             node.data.kind === "video_output") && (
-            <p className="text-sm text-[var(--color-muted-foreground)]">
+            <p className="text-sm text-muted-foreground">
               Structural node — no extra settings.
             </p>
           )}
@@ -124,7 +124,7 @@ function RestoreFields({
           className={cn(
             fieldCls,
             "h-28 resize-y py-2 font-mono text-xs",
-            paramsErr && "border-[var(--color-destructive)]",
+            paramsErr && "border-destructive",
           )}
           value={paramsText}
           onChange={(e) => {
@@ -140,7 +140,7 @@ function RestoreFields({
           }}
         />
         {paramsErr && (
-          <p className="mt-1 text-xs text-[var(--color-destructive)]">
+          <p className="mt-1 text-xs text-destructive">
             Invalid JSON — not saved.
           </p>
         )}

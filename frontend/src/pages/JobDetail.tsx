@@ -54,9 +54,9 @@ export default function JobDetail() {
       <header className="flex items-start justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Job</h1>
-          <p className="font-mono text-sm text-[var(--color-muted-foreground)]">{jobId}</p>
+          <p className="font-mono text-sm text-muted-foreground">{jobId}</p>
           {job && (
-            <p className="text-sm text-[var(--color-muted-foreground)]">
+            <p className="text-sm text-muted-foreground">
               Pipeline <span className="font-mono">{job.pipeline_id}</span>
               {" · created "}
               {formatRelativeTime(job.created_at)}
@@ -66,8 +66,8 @@ export default function JobDetail() {
         </div>
         <div className="flex items-center gap-2">
           {live.connected && (
-            <span className="flex items-center gap-1.5 text-xs text-[var(--color-muted-foreground)]">
-              <span className="size-2 rounded-full bg-[var(--color-success)]" />
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="size-2 rounded-full bg-success" />
               live
             </span>
           )}
@@ -80,8 +80,8 @@ export default function JobDetail() {
           <CardTitle>Overall progress</CardTitle>
         </CardHeader>
         <CardContent>
-          <Progress value={progress} />
-          <p className="mt-2 text-right text-sm tabular-nums text-[var(--color-muted-foreground)]">
+          <Progress value={progress * 100} />
+          <p className="mt-2 text-right text-sm tabular-nums text-muted-foreground">
             {Math.round(progress * 100)}%
           </p>
         </CardContent>
@@ -98,11 +98,11 @@ export default function JobDetail() {
       {hasOutput && job && <ResultPanel job={job} />}
 
       {job?.error && (
-        <Card className="border-[var(--color-destructive)]/40">
+        <Card className="border-destructive/40">
           <CardHeader>
-            <CardTitle className="text-[var(--color-destructive)]">Error</CardTitle>
+            <CardTitle className="text-destructive">Error</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-[var(--color-destructive)]">
+          <CardContent className="text-sm text-destructive">
             {job.error}
           </CardContent>
         </Card>

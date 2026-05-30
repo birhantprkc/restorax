@@ -11,9 +11,9 @@ const nav = [
 export function AppShell() {
   return (
     <div className="flex h-full">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-card)]">
+      <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-card">
         <div className="flex items-center gap-2 px-5 py-4">
-          <Film className="size-5 text-[var(--color-primary)]" />
+          <Film className="size-5 text-primary" />
           <span className="text-lg font-semibold tracking-tight">RestoraX</span>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
@@ -26,8 +26,8 @@ export function AppShell() {
                 cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-[var(--color-primary)]/15 text-[var(--color-primary)]"
-                    : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+                    ? "bg-primary/15 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )
               }
             >

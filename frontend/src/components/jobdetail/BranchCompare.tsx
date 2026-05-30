@@ -24,9 +24,9 @@ interface SelectorProps {
 function BranchSelector({ label, value, options, onChange }: SelectorProps) {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-[var(--color-muted-foreground)]">{label}</span>
+      <span className="text-muted-foreground">{label}</span>
       <select
-        className="rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+        className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
       >
@@ -69,7 +69,7 @@ export function BranchCompare({ branches }: BranchCompareProps) {
           <BranchSelector label="Left" value={left.branch_index} options={withOutput} onChange={setLeftIdx} />
           <BranchSelector label="Right" value={right.branch_index} options={withOutput} onChange={setRightIdx} />
         </div>
-        <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
+        <div className="overflow-hidden rounded-lg border border-border">
           <ReactCompareSlider
             itemOne={
               <ReactCompareSliderImage

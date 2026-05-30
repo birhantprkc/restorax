@@ -5,7 +5,7 @@ interface NodeShellProps {
   selected?: NodeProps["selected"];
   title: string;
   subtitle?: string;
-  /** Tailwind accent class for the left bar / handles, e.g. "bg-[var(--color-primary)]". */
+  /** Tailwind accent class for the left bar / handles, e.g. "bg-primary". */
   accent: string;
   /** Render a target (input) handle on the left. */
   hasInput?: boolean;
@@ -25,10 +25,10 @@ export function NodeShell({
   return (
     <div
       className={cn(
-        "relative min-w-[160px] rounded-lg border bg-[var(--color-card)] px-3 py-2 shadow-sm transition-colors",
+        "relative min-w-[160px] rounded-lg border bg-card px-3 py-2 shadow-sm transition-colors",
         selected
-          ? "border-[var(--color-ring)] ring-1 ring-[var(--color-ring)]"
-          : "border-[var(--color-border)]",
+          ? "border-ring ring-1 ring-ring"
+          : "border-border",
       )}
     >
       <div className={cn("absolute inset-y-0 left-0 w-1 rounded-l-lg", accent)} />
@@ -37,13 +37,13 @@ export function NodeShell({
           id="video"
           type="target"
           position={Position.Left}
-          className="!h-2.5 !w-2.5 !border-0 !bg-[var(--color-muted-foreground)]"
+          className="!h-2.5 !w-2.5 !border-0 !bg-muted-foreground"
         />
       )}
       <div className="pl-1.5">
-        <p className="text-sm font-medium leading-tight text-[var(--color-foreground)]">{title}</p>
+        <p className="text-sm font-medium leading-tight text-foreground">{title}</p>
         {subtitle && (
-          <p className="truncate text-xs text-[var(--color-muted-foreground)]">{subtitle}</p>
+          <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
         )}
       </div>
       {hasOutput && (
@@ -51,7 +51,7 @@ export function NodeShell({
           id="video"
           type="source"
           position={Position.Right}
-          className="!h-2.5 !w-2.5 !border-0 !bg-[var(--color-muted-foreground)]"
+          className="!h-2.5 !w-2.5 !border-0 !bg-muted-foreground"
         />
       )}
     </div>
