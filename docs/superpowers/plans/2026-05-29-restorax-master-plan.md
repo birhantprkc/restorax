@@ -1,6 +1,6 @@
 # RestoraX Master Plan
 
-**Last updated:** 2026-05-29
+**Last updated:** 2026-05-30
 **Owner:** İlker Kara
 
 This document is the single source of truth for all active and planned development tracks. Each sub-project has its own spec + implementation plan. This document describes scope, order, dependencies, and status at a high level.
@@ -11,8 +11,8 @@ This document is the single source of truth for all active and planned developme
 
 ```
 Sub-project 1 — Backend Foundations          ✅ COMPLETE
-Sub-project 2 — Pipeline DAG Engine          🔄 IN PROGRESS (spec approved)
-Sub-project 3 — Modern UI                    ⏳ PENDING (depends on Sub-project 2 API)
+Sub-project 2 — Pipeline DAG Engine          ✅ COMPLETE
+Sub-project 3 — Modern UI                    ⏳ NEXT (Sub-project 2 API now available)
 Sub-project 4 — ComfyUI Node Pack            ⏳ PENDING (independent)
 Track E       — Documentation Refactor       ⏳ LAST (after all sub-projects ship)
 ```
@@ -41,10 +41,10 @@ Track E       — Documentation Refactor       ⏳ LAST (after all sub-projects 
 
 ---
 
-## Sub-project 2 — Pipeline DAG Engine 🔄 IN PROGRESS
+## Sub-project 2 — Pipeline DAG Engine ✅ COMPLETE
 
 **Spec:** `docs/superpowers/specs/2026-05-29-pipeline-dag-design.md`
-**Plan:** TBD (writing-plans skill → `docs/superpowers/plans/2026-05-29-pipeline-dag-engine.md`)
+**Plan:** `docs/superpowers/plans/2026-05-29-pipeline-dag-engine.md` (15 TDD tasks, all shipped 2026-05-30)
 
 ### Goal
 Replace the limitation of purely sequential pipelines with a full DAG orchestration engine. Users can define parallel restoration branches, compare outputs side-by-side, and select or blend the best result. The engine is designed to be extracted as a standalone open-source library (`restorax-dag`) in the future.
@@ -112,14 +112,14 @@ POST   /jobs/{id}/merge         {"strategy":"blend"} | {"strategy":"select","bra
 - Developer guide: how to write a custom node type
 - Update `GET /models` to include DAG capability flag
 
-### Completion criteria
-- [ ] `POST /pipelines/dag` stores a DAG with 2 parallel branches
-- [ ] `POST /jobs` with `dag_id` executes both branches sequentially
-- [ ] `GET /jobs/{id}/branches` returns per-branch progress and output paths
-- [ ] `POST /jobs/{id}/merge` with `strategy=blend` produces blended output
-- [ ] `DAGValidationError` raised for cyclic DAGs at construction time
-- [ ] Retry policy retries failed nodes up to `max_retries` times
-- [ ] All new tests pass, no regressions in existing suite
+### Completion criteria — all met ✅ (commits f3aded8..ccc0b35)
+- [x] `POST /pipelines/dag` stores a DAG with 2 parallel branches
+- [x] `POST /jobs` with `dag_id` executes both branches sequentially
+- [x] `GET /jobs/{id}/branches` returns per-branch progress and output paths
+- [x] `POST /jobs/{id}/merge` with `strategy=blend` produces blended output
+- [x] `DAGValidationError` raised for cyclic DAGs at construction time
+- [x] Retry policy retries failed nodes up to `max_retries` times
+- [x] All new tests pass (430 passed, 1 skipped), no regressions in existing suite
 
 ---
 
@@ -235,8 +235,9 @@ Execute the existing doc-refactor plan after all sub-projects are complete so th
 | Pull Shark | ✅ | Merged multiple PRs |
 | Arctic Code Vault Contributor | ✅ | Prior work |
 | Quickdraw | 🔄 triggered | Closed issue #3 within seconds |
-| Galaxy Brain | 🔄 triggered | Marked answer in Discussion #2 |
+| Galaxy Brain | 🔄 in progress | 1 accepted answer (Discussion #2); needs 2 for bronze |
 | Heart On Your Sleeve | 🔄 triggered | ❤️ reaction on Discussion #2 |
+| Pull Shark | ✅ bronze | 4 merged PRs (bronze = 2; silver = 16) |
 
 ---
 
