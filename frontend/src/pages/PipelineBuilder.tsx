@@ -15,6 +15,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { createDag } from "@/lib/api";
 import { Palette } from "@/components/builder/Palette";
 import { ConfigPanel } from "@/components/builder/ConfigPanel";
@@ -119,8 +120,8 @@ function Builder() {
               {save.message.slice(0, 40)}
             </Badge>
           )}
-          <input
-            className="h-9 w-56 rounded-md border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <Input
+            className="w-56"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="DAG name"

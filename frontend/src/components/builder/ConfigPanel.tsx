@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import type { RestorerInfo } from "@/types";
 import { fetchModels } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type {
   BuilderNode,
   BuilderNodeData,
@@ -9,10 +19,7 @@ import type {
   RestoreNodeData,
 } from "./types";
 
-const fieldCls =
-  "h-9 w-full rounded-md border border-border bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const labelCls =
-  "mb-1 block text-xs font-medium text-muted-foreground";
+const labelCls = "mb-1.5 text-xs font-medium text-muted-foreground";
 
 interface Props {
   node: BuilderNode | null;
@@ -45,9 +52,8 @@ export function ConfigPanel({ node, onChange }: Props) {
       ) : (
         <div className="flex flex-col gap-4">
           <div>
-            <label className={labelCls}>Label</label>
-            <input
-              className={fieldCls}
+            <Label className={labelCls}>Label</Label>
+            <Input
               value={node.data.label}
               onChange={(e) => onChange(node.id, { label: e.target.value })}
             />
@@ -104,26 +110,28 @@ function RestoreFields({
   return (
     <>
       <div>
-        <label className={labelCls}>Restorer</label>
-        <select
-          className={fieldCls}
-          value={data.restorer_name}
-          onChange={(e) => onChange(node.id, { restorer_name: e.target.value })}
+        <Label className={labelCls}>Restorer</Label>
+        <Select
+          value={data.restorer_name || undefined}
+          onValueChange={(v) => onChange(node.id, { restorer_name: v })}
         >
-          <option value="">— select —</option>
-          {options.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="— select —" />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((m) => (
+              <SelectItem key={m} value={m}>
+                {m}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
-        <label className={labelCls}>Params (JSON)</label>
-        <textarea
+        <Label className={labelCls}>Params (JSON)</Label>
+        <Textarea
           className={cn(
-            fieldCls,
-            "h-28 resize-y py-2 font-mono text-xs",
+            "h-28 resize-y font-mono text-xs",
             paramsErr && "border-destructive",
           )}
           value={paramsText}
@@ -160,27 +168,28 @@ function MergeFields({
   return (
     <>
       <div>
-        <label className={labelCls}>Strategy</label>
-        <select
-          className={fieldCls}
+        <Label className={labelCls}>Strategy</Label>
+        <Select
           value={data.strategy}
-          onChange={(e) =>
-            onChange(node.id, {
-              strategy: e.target.value as MergeNodeData["strategy"],
-            })
+          onValueChange={(v) =>
+            onChange(node.id, { strategy: v as MergeNodeData["strategy"] })
           }
         >
-          <option value="blend">blend</option>
-          <option value="select">select</option>
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="blend">blend</SelectItem>
+            <SelectItem value="select">select</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       {data.strategy === "select" && (
         <div>
-          <label className={labelCls}>Select index</label>
-          <input
+          <Label className={labelCls}>Select index</Label>
+          <Input
             type="number"
             min={0}
-            className={fieldCls}
             value={data.select_index}
             onChange={(e) =>
               onChange(node.id, {
