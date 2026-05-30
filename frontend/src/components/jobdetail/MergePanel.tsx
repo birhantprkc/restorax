@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { mergeJobBranches } from "@/lib/api";
 import type { Job } from "@/types";
 import type { CombinedBranch } from "./branches";
@@ -46,34 +54,39 @@ export function MergePanel({ jobId, branches, onMerged }: MergePanelProps) {
         <CardTitle>Merge branches</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Strategy</span>
-            <select
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              value={strategy}
-              onChange={(e) => setStrategy(e.target.value as Strategy)}
-            >
-              <option value="blend">Blend (all)</option>
-              <option value="select">Select one</option>
-            </select>
-          </label>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-xs text-muted-foreground">Strategy</Label>
+            <Select value={strategy} onValueChange={(v) => setStrategy(v as Strategy)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="blend">Blend (all)</SelectItem>
+                <SelectItem value="select">Select one</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {strategy === "select" && (
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Branch</span>
-              <select
-                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                value={branchIndex}
-                onChange={(e) => setBranchIndex(Number(e.target.value))}
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs text-muted-foreground">Branch</Label>
+              <Select
+                value={String(branchIndex)}
+                onValueChange={(v) => setBranchIndex(Number(v))}
               >
-                {branches.map((b) => (
-                  <option key={b.branch_index} value={b.branch_index}>
-                    {b.name || b.node_id || `branch ${b.branch_index}`}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <SelectTrigger className="w-52">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((b) => (
+                    <SelectItem key={b.branch_index} value={String(b.branch_index)}>
+                      {b.name || b.node_id || `branch ${b.branch_index}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           <Button onClick={handleMerge} disabled={busy}>

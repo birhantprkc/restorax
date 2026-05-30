@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { ReactCompareSlider, ReactCompareSliderImage } from "react-compare-slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { API_BASE } from "@/lib/api";
 import type { CombinedBranch } from "./branches";
 
@@ -23,20 +31,21 @@ interface SelectorProps {
 
 function BranchSelector({ label, value, options, onChange }: SelectorProps) {
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <select
-        className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-      >
-        {options.map((b) => (
-          <option key={b.branch_index} value={b.branch_index}>
-            {b.name || b.node_id || `branch ${b.branch_index}`}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="flex flex-col gap-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
+        <SelectTrigger className="w-52">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((b) => (
+            <SelectItem key={b.branch_index} value={String(b.branch_index)}>
+              {b.name || b.node_id || `branch ${b.branch_index}`}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
