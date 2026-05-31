@@ -13,18 +13,21 @@ import {
   type Edge,
   type XYPosition,
 } from "@xyflow/react";
-import { Undo2, Redo2, Upload, Download, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Undo2, Redo2, Upload, Download, Plus, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge, statusVariant } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { createDag, fetchModels } from "@/lib/api";
+import { createDag, fetchModels, submitJob } from "@/lib/api";
+import { useJobProgress } from "@/hooks/useJobProgress";
 import { Palette } from "@/components/builder/Palette";
 import { ConfigPanel } from "@/components/builder/ConfigPanel";
 import { NodeSearch } from "@/components/builder/NodeSearch";
 import { CanvasMenu, type CanvasMenuState } from "@/components/builder/CanvasMenu";
 import { nodeTypes } from "@/components/builder/nodes";
+import { RunProgressContext } from "@/components/builder/runContext";
 import { createNode, duplicateNode } from "@/components/builder/factory";
 import { serializeDag, slugify } from "@/components/builder/serialize";
 import { inputPortType, outputPortType, portsCompatible } from "@/components/builder/ports";
@@ -69,6 +72,7 @@ type SaveState =
 function Builder() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const { screenToFlowPosition, fitView, getNodes } = useReactFlow();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNode>(initialNodes);
@@ -276,6 +280,36 @@ function Builder() {
     }
   }, [name, nodes, edges]);
 
+  // ── Run on canvas: save current DAG, submit a job, overlay live progress ────
+  const [runJobId, setRunJobId] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const progress = useJobProgress(runJobId ?? undefined);
+
+  const onRunFile = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = ""; // allow re-running with the same file
+      if (!file) return;
+      // Save the *current* canvas first so the DAG node ids match the canvas
+      // node ids the progress overlay is keyed on.
+      const id = slugify(name);
+      setSubmitting(true);
+      setRunError(null);
+      setRunJobId(null);
+      try {
+        await createDag({ id, name, config: serializeDag(id, name, nodes, edges) });
+        const job = await submitJob(file, { dagId: id });
+        setRunJobId(job.id);
+      } catch (err) {
+        setRunError(err instanceof Error ? err.message : "Run failed");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [name, nodes, edges],
+  );
+
   return (
     <div className="flex h-full flex-col">
       <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-3">
@@ -356,6 +390,15 @@ function Builder() {
           <Button onClick={onSave} disabled={save.kind === "saving" || !name.trim()}>
             {save.kind === "saving" ? "Saving…" : "Save DAG"}
           </Button>
+          <Button
+            variant="secondary"
+            onClick={() => videoInputRef.current?.click()}
+            disabled={submitting || !name.trim()}
+            title="Save & run this DAG on a video"
+          >
+            <Play />
+            {submitting ? "Starting…" : "Run"}
+          </Button>
 
           <input
             ref={fileInputRef}
@@ -364,8 +407,42 @@ function Builder() {
             className="hidden"
             onChange={onImportFile}
           />
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={onRunFile}
+          />
         </div>
       </header>
+
+      {(runJobId || runError) && (
+        <div className="flex items-center gap-3 border-b border-border bg-muted/30 px-6 py-2 text-sm">
+          {runError ? (
+            <Badge variant="destructive" title={runError}>
+              {runError.slice(0, 80)}
+            </Badge>
+          ) : (
+            <>
+              <Badge variant={statusVariant(progress.status ?? "")}>
+                {progress.status ?? (progress.connected ? "running" : "starting")}
+              </Badge>
+              <span className="text-muted-foreground">
+                overall {Math.round(progress.progress * 100)}%
+              </span>
+              {runJobId && (
+                <Link
+                  to={`/jobs/${runJobId}`}
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Open job →
+                </Link>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <div className="flex min-h-0 flex-1">
         <Palette />
@@ -378,30 +455,32 @@ function Builder() {
             openSearchAt(screenToFlowPosition({ x: e.clientX, y: e.clientY }))
           }
         >
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            isValidConnection={isValidConnection}
-            onNodeDragStart={snapshot}
-            onNodesDelete={snapshot}
-            onEdgesDelete={snapshot}
-            onSelectionChange={({ nodes: sel }) => setSelectedId(sel[0]?.id ?? null)}
-            onPaneContextMenu={onPaneContextMenu}
-            onNodeContextMenu={onNodeContextMenu}
-            onPaneClick={() => setMenu(null)}
-            deleteKeyCode={["Backspace", "Delete"]}
-            zoomOnDoubleClick={false}
-            fitView
-            colorMode="dark"
-          >
-            <Background />
-            <Controls />
-            <MiniMap pannable zoomable />
-          </ReactFlow>
+          <RunProgressContext.Provider value={runJobId ? progress.nodes : null}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              isValidConnection={isValidConnection}
+              onNodeDragStart={snapshot}
+              onNodesDelete={snapshot}
+              onEdgesDelete={snapshot}
+              onSelectionChange={({ nodes: sel }) => setSelectedId(sel[0]?.id ?? null)}
+              onPaneContextMenu={onPaneContextMenu}
+              onNodeContextMenu={onNodeContextMenu}
+              onPaneClick={() => setMenu(null)}
+              deleteKeyCode={["Backspace", "Delete"]}
+              zoomOnDoubleClick={false}
+              fitView
+              colorMode="dark"
+            >
+              <Background />
+              <Controls />
+              <MiniMap pannable zoomable />
+            </ReactFlow>
+          </RunProgressContext.Provider>
         </div>
         <ConfigPanel node={selectedNode} onChange={patchNode} />
 

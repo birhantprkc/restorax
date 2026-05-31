@@ -2,8 +2,11 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import type { BuilderNodeType } from "../types";
 import { NODE_PORTS, PORT_COLOR, type PortDef } from "../ports";
+import { useNodeRun } from "../runContext";
 
 interface NodeShellProps {
+  /** Node id — used to look up live run progress. */
+  id: string;
   selected?: NodeProps["selected"];
   /** Node type — drives which typed sockets are rendered. */
   nodeType: BuilderNodeType;
@@ -14,6 +17,21 @@ interface NodeShellProps {
 }
 
 const HANDLE_CLASS = "!h-3 !w-3 !rounded-full !border-2 !border-card";
+
+/** Status → border + progress-bar colour while a run is live. */
+function runStyles(status: string | undefined) {
+  switch (status) {
+    case "succeeded":
+      return { border: "border-success", bar: "bg-success" };
+    case "failed":
+      return { border: "border-destructive", bar: "bg-destructive" };
+    case "running":
+    case "retrying":
+      return { border: "border-warning", bar: "bg-warning" };
+    default:
+      return null;
+  }
+}
 
 function PortRow({ port, side }: { port: PortDef; side: "input" | "output" }) {
   const isInput = side === "input";
@@ -41,6 +59,7 @@ function PortRow({ port, side }: { port: PortDef; side: "input" | "output" }) {
 
 /** Shared visual chrome for builder nodes — typed sockets stay consistent. */
 export function NodeShell({
+  id,
   selected,
   nodeType,
   title,
@@ -48,11 +67,18 @@ export function NodeShell({
   accent,
 }: NodeShellProps) {
   const { inputs, outputs } = NODE_PORTS[nodeType];
+  const run = useNodeRun(id);
+  const styles = runStyles(run?.status);
+  const barWidth =
+    run?.status === "failed" ? 100 : Math.round((run?.progress ?? 0) * 100);
+
   return (
     <div
       className={cn(
         "relative min-w-[180px] rounded-lg border bg-card shadow-sm transition-colors",
-        selected ? "border-ring ring-1 ring-ring" : "border-border",
+        selected
+          ? "border-ring ring-1 ring-ring"
+          : styles?.border ?? "border-border",
       )}
     >
       <div className={cn("absolute inset-y-0 left-0 w-1 rounded-l-lg", accent)} />
@@ -74,6 +100,14 @@ export function NodeShell({
           ))}
         </div>
       </div>
+      {styles && (
+        <div className="h-1 w-full overflow-hidden rounded-b-lg bg-muted">
+          <div
+            className={cn("h-full transition-all duration-300", styles.bar)}
+            style={{ width: `${barWidth}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }
