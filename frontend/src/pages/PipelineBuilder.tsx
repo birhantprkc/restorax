@@ -27,6 +27,7 @@ import { CanvasMenu, type CanvasMenuState } from "@/components/builder/CanvasMen
 import { nodeTypes } from "@/components/builder/nodes";
 import { createNode, duplicateNode } from "@/components/builder/factory";
 import { serializeDag, slugify } from "@/components/builder/serialize";
+import { inputPortType, outputPortType, portsCompatible } from "@/components/builder/ports";
 import { useUndoRedo } from "@/components/builder/useUndoRedo";
 import { downloadWorkflow, parseWorkflow } from "@/components/builder/workflow";
 import { DRAG_MIME, type BuilderNode, type BuilderNodeData, type PaletteDragPayload } from "@/components/builder/types";
@@ -68,7 +69,7 @@ type SaveState =
 function Builder() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { screenToFlowPosition, fitView } = useReactFlow();
+  const { screenToFlowPosition, fitView, getNodes } = useReactFlow();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<BuilderNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -88,6 +89,21 @@ function Builder() {
       setEdges((eds) => addEdge(c, eds));
     },
     [snapshot, setEdges],
+  );
+
+  // Type-check a candidate connection against the typed socket contract.
+  // React Flow uses this both to block invalid drops and to dim sockets that
+  // can't accept the wire being dragged. Mirrors backend port-type validation.
+  const isValidConnection = useCallback(
+    (c: Connection | Edge) => {
+      if (!c.source || !c.target || !c.sourceHandle || !c.targetHandle) return false;
+      const byId = new Map(getNodes().map((n) => [n.id, n.type]));
+      const src = outputPortType(byId.get(c.source), c.sourceHandle);
+      const tgt = inputPortType(byId.get(c.target), c.targetHandle);
+      if (!src || !tgt) return false;
+      return portsCompatible(src, tgt);
+    },
+    [getNodes],
   );
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -369,6 +385,7 @@ function Builder() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            isValidConnection={isValidConnection}
             onNodeDragStart={snapshot}
             onNodesDelete={snapshot}
             onEdgesDelete={snapshot}

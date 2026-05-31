@@ -1,59 +1,77 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { cn } from "@/lib/utils";
+import type { BuilderNodeType } from "../types";
+import { NODE_PORTS, PORT_COLOR, type PortDef } from "../ports";
 
 interface NodeShellProps {
   selected?: NodeProps["selected"];
+  /** Node type — drives which typed sockets are rendered. */
+  nodeType: BuilderNodeType;
   title: string;
   subtitle?: string;
-  /** Tailwind accent class for the left bar / handles, e.g. "bg-primary". */
+  /** Tailwind accent class for the left bar, e.g. "bg-primary". */
   accent: string;
-  /** Render a target (input) handle on the left. */
-  hasInput?: boolean;
-  /** Render a source (output) handle on the right. */
-  hasOutput?: boolean;
 }
 
-/** Shared visual chrome for builder nodes — keeps handles + theme consistent. */
-export function NodeShell({
-  selected,
-  title,
-  subtitle,
-  accent,
-  hasInput = true,
-  hasOutput = true,
-}: NodeShellProps) {
+const HANDLE_CLASS = "!h-3 !w-3 !rounded-full !border-2 !border-card";
+
+function PortRow({ port, side }: { port: PortDef; side: "input" | "output" }) {
+  const isInput = side === "input";
   return (
     <div
       className={cn(
-        "relative min-w-[160px] rounded-lg border bg-card px-3 py-2 shadow-sm transition-colors",
-        selected
-          ? "border-ring ring-1 ring-ring"
-          : "border-border",
+        "relative flex items-center",
+        isInput ? "justify-start" : "justify-end",
+      )}
+    >
+      <Handle
+        id={port.name}
+        type={isInput ? "target" : "source"}
+        position={isInput ? Position.Left : Position.Right}
+        className={cn(HANDLE_CLASS, PORT_COLOR[port.type])}
+      />
+      <span className="text-[10px] leading-none text-muted-foreground">
+        {port.name}
+      </span>
+    </div>
+  );
+}
+
+/** Shared visual chrome for builder nodes — typed sockets stay consistent. */
+export function NodeShell({
+  selected,
+  nodeType,
+  title,
+  subtitle,
+  accent,
+}: NodeShellProps) {
+  const { inputs, outputs } = NODE_PORTS[nodeType];
+  return (
+    <div
+      className={cn(
+        "relative min-w-[180px] rounded-lg border bg-card shadow-sm transition-colors",
+        selected ? "border-ring ring-1 ring-ring" : "border-border",
       )}
     >
       <div className={cn("absolute inset-y-0 left-0 w-1 rounded-l-lg", accent)} />
-      {hasInput && (
-        <Handle
-          id="video"
-          type="target"
-          position={Position.Left}
-          className="!h-2.5 !w-2.5 !border-0 !bg-muted-foreground"
-        />
-      )}
-      <div className="pl-1.5">
+      <div className="border-b border-border px-3 py-2 pl-3.5">
         <p className="text-sm font-medium leading-tight text-foreground">{title}</p>
         {subtitle && (
           <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
         )}
       </div>
-      {hasOutput && (
-        <Handle
-          id="video"
-          type="source"
-          position={Position.Right}
-          className="!h-2.5 !w-2.5 !border-0 !bg-muted-foreground"
-        />
-      )}
+      <div className="flex justify-between gap-6 px-3 py-2">
+        <div className="flex flex-col gap-2">
+          {inputs.map((p) => (
+            <PortRow key={p.name} port={p} side="input" />
+          ))}
+        </div>
+        <div className="flex flex-col gap-2">
+          {outputs.map((p) => (
+            <PortRow key={p.name} port={p} side="output" />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

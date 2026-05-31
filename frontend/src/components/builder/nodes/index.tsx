@@ -9,6 +9,7 @@ function RestoreNode({ data, selected }: Props) {
   return (
     <NodeShell
       selected={selected}
+      nodeType="restore"
       title={d.label}
       subtitle={d.restorer_name || "— pick a restorer —"}
       accent="bg-primary"
@@ -21,6 +22,7 @@ function MergeNode({ data, selected }: Props) {
   return (
     <NodeShell
       selected={selected}
+      nodeType="merge"
       title={d.label}
       subtitle={
         d.strategy === "select" ? `select #${d.select_index}` : "blend"
@@ -34,6 +36,7 @@ function ParallelNode({ data, selected }: Props) {
   return (
     <NodeShell
       selected={selected}
+      nodeType="parallel"
       title={data.label}
       subtitle="parallel branches"
       accent="bg-success"
@@ -45,6 +48,7 @@ function PassNode({ data, selected }: Props) {
   return (
     <NodeShell
       selected={selected}
+      nodeType="pass"
       title={data.label}
       accent="bg-muted-foreground"
     />
@@ -55,9 +59,9 @@ function VideoInputNode({ data, selected }: Props) {
   return (
     <NodeShell
       selected={selected}
+      nodeType="video_input"
       title={data.label}
       accent="bg-secondary"
-      hasInput={false}
     />
   );
 }
@@ -66,9 +70,9 @@ function VideoOutputNode({ data, selected }: Props) {
   return (
     <NodeShell
       selected={selected}
+      nodeType="video_output"
       title={data.label}
       accent="bg-secondary"
-      hasOutput={false}
     />
   );
 }
