@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # App
     app_env: str = "development"
     log_level: str = "INFO"
+    # Allowed CORS origins for the browser frontend. Dev defaults to the Vite dev
+    # server; set explicit origins in production (wildcard is invalid with credentials).
+    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     # Observability
     otel_service_name: str = "restorax"

@@ -60,10 +60,14 @@ export function Palette() {
     };
   }, []);
 
-  const byCategory = models.reduce<Record<string, RestorerInfo[]>>((acc, m) => {
-    (acc[m.category] ??= []).push(m);
-    return acc;
-  }, {});
+  // The DAG `restore` node calls process_frame, which audio restorers don't
+  // implement — only show video restorers so the canvas can't build an invalid graph.
+  const byCategory = models
+    .filter((m) => m.kind !== "audio")
+    .reduce<Record<string, RestorerInfo[]>>((acc, m) => {
+      (acc[m.category] ??= []).push(m);
+      return acc;
+    }, {});
 
   return (
     <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border p-4">

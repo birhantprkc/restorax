@@ -60,6 +60,7 @@ async def list_models() -> ModelListResponse:
             restorers.append(
                 RestorerInfo(
                     name=cls.name.fget(instance),  # type: ignore[attr-defined]
+                    kind="video",
                     category=caps.category.value,
                     input_color_space=caps.input_color_space,
                     output_color_space=caps.output_color_space,
@@ -76,6 +77,7 @@ async def list_models() -> ModelListResponse:
             restorers.append(
                 RestorerInfo(
                     name=cls.name.fget(instance),  # type: ignore[attr-defined]
+                    kind="audio",
                     category=caps.category.value,
                     min_ram_gb=caps.min_ram_gb,
                     supports_stereo=caps.supports_stereo,
