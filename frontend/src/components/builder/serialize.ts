@@ -1,14 +1,12 @@
 import type { Edge } from "@xyflow/react";
 import type { DAGConfig, DAGEdge, DAGNode } from "@/types";
-import type { BuilderNode } from "./types";
-
-/** Default port name used by most nodes for both input and output. */
-const DEFAULT_PORT = "video";
+import type { BuilderNode, BuilderNodeType } from "./types";
+import { NODE_PORTS } from "./ports";
 
 /**
  * Map a single canvas node to its backend DAGNode shape.
  * Field shapes per backend contract:
- *  - restore: { restorer_name, params }
+ *  - restore: { restorer_name, params_dict }
  *  - merge:   { strategy, select_index? }
  *  - parallel: { branches: [] }  (branch authoring is out of scope; emit empty)
  *  - video_input / video_output / pass: structural, no extra fields
@@ -23,7 +21,7 @@ function toDagNode(node: BuilderNode): DAGNode {
         ...base,
         type: "restore",
         restorer_name: data.restorer_name,
-        params: data.params,
+        params_dict: data.params,
       };
     case "merge": {
       const out: DAGNode = {
@@ -43,12 +41,17 @@ function toDagNode(node: BuilderNode): DAGNode {
   }
 }
 
-function toDagEdge(edge: Edge): DAGEdge {
+/** First declared port name for a node type — the fallback when an edge lacks an explicit handle id. */
+function firstPort(nodeType: BuilderNodeType | undefined, side: "inputs" | "outputs"): string {
+  return (nodeType && NODE_PORTS[nodeType][side][0]?.name) ?? "";
+}
+
+function toDagEdge(edge: Edge, typeOf: (id: string) => BuilderNodeType | undefined): DAGEdge {
   return {
     source_node_id: edge.source,
-    source_port: edge.sourceHandle ?? DEFAULT_PORT,
+    source_port: edge.sourceHandle ?? firstPort(typeOf(edge.source), "outputs"),
     target_node_id: edge.target,
-    target_port: edge.targetHandle ?? DEFAULT_PORT,
+    target_port: edge.targetHandle ?? firstPort(typeOf(edge.target), "inputs"),
   };
 }
 
@@ -59,12 +62,14 @@ export function serializeDag(
   nodes: BuilderNode[],
   edges: Edge[],
 ): DAGConfig {
+  const typeById = new Map(nodes.map((n) => [n.id, n.type as BuilderNodeType | undefined]));
+  const typeOf = (nodeId: string) => typeById.get(nodeId);
   return {
     schema_type: "dag",
     id,
     name,
     nodes: nodes.map(toDagNode),
-    edges: edges.map(toDagEdge),
+    edges: edges.map((e) => toDagEdge(e, typeOf)),
   };
 }
 
