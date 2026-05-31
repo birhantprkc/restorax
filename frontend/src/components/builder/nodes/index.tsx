@@ -4,10 +4,11 @@ import { NodeShell } from "./NodeShell";
 
 type Props = NodeProps & { data: BuilderNodeData };
 
-function RestoreNode({ data, selected }: Props) {
+function RestoreNode({ id, data, selected }: Props) {
   const d = data as RestoreNodeData;
   return (
     <NodeShell
+      id={id}
       selected={selected}
       nodeType="restore"
       title={d.label}
@@ -17,10 +18,11 @@ function RestoreNode({ data, selected }: Props) {
   );
 }
 
-function MergeNode({ data, selected }: Props) {
+function MergeNode({ id, data, selected }: Props) {
   const d = data as MergeNodeData;
   return (
     <NodeShell
+      id={id}
       selected={selected}
       nodeType="merge"
       title={d.label}
@@ -32,9 +34,10 @@ function MergeNode({ data, selected }: Props) {
   );
 }
 
-function ParallelNode({ data, selected }: Props) {
+function ParallelNode({ id, data, selected }: Props) {
   return (
     <NodeShell
+      id={id}
       selected={selected}
       nodeType="parallel"
       title={data.label}
@@ -44,9 +47,10 @@ function ParallelNode({ data, selected }: Props) {
   );
 }
 
-function PassNode({ data, selected }: Props) {
+function PassNode({ id, data, selected }: Props) {
   return (
     <NodeShell
+      id={id}
       selected={selected}
       nodeType="pass"
       title={data.label}
@@ -55,9 +59,10 @@ function PassNode({ data, selected }: Props) {
   );
 }
 
-function VideoInputNode({ data, selected }: Props) {
+function VideoInputNode({ id, data, selected }: Props) {
   return (
     <NodeShell
+      id={id}
       selected={selected}
       nodeType="video_input"
       title={data.label}
@@ -66,9 +71,10 @@ function VideoInputNode({ data, selected }: Props) {
   );
 }
 
-function VideoOutputNode({ data, selected }: Props) {
+function VideoOutputNode({ id, data, selected }: Props) {
   return (
     <NodeShell
+      id={id}
       selected={selected}
       nodeType="video_output"
       title={data.label}
