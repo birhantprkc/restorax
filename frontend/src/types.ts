@@ -39,6 +39,7 @@ export interface ParamSpec {
 
 export interface RestorerInfo {
   name: string;
+  kind?: "video" | "audio";
   category: string;
   input_color_space?: string | null;
   output_color_space?: string | null;
