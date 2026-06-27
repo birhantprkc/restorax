@@ -1,30 +1,110 @@
 {
   "sr_real_esrgan": {
     "status": "real",
-    "model": "RealESRGAN_x4plus",
-    "elapsed_s": 6.78
+    "model": "RealESRGANx4Restorer",
+    "elapsed_s": 6.41
+  },
+  "sr_basicvsr_pp": {
+    "status": "failed",
+    "error": "404 Client Error. (Request ID: Root=1-6a40295b-0a0d52f967d58a381d4abc0f;f3c5b192-38d7-4c43-8a61-6f04516f5f45)\n\nEntry Not Found for url: https://huggingface.co/Iceclear/StableSR/resolve/main/BasicVSR_P"
+  },
+  "sr_upscale_a_video": {
+    "status": "failed",
+    "error": "Upscale-A-Video arch unavailable: No module named 'restorax.restorers.super_resolution.upscale_a_video_arch'. Install with: pip install 'restorax[diffusion]'"
+  },
+  "sr_vrt": {
+    "status": "failed",
+    "error": "VRT arch unavailable: No module named 'basicsr.archs.vrt_arch'. Install basicsr: pip install basicsr"
+  },
+  "sr_mamba_ir": {
+    "status": "failed",
+    "error": "MambaIR unavailable: No module named 'restorax.restorers.super_resolution.mamba_ir_arch'. Install: pip install mamba-ssm"
+  },
+  "sr_tdm": {
+    "status": "failed",
+    "error": "TDM requires diffusers: pip install 'restorax[diffusion]'"
+  },
+  "sr_seedvr": {
+    "status": "failed",
+    "error": "SeedVR requires diffusers: pip install 'restorax[diffusion]'"
+  },
+  "sr_waifu2x": {
+    "status": "failed",
+    "error": "waifu2x_arch module not found - install the waifu2x optional dependency group"
+  },
+  "sr_flashvsr": {
+    "status": "failed",
+    "error": "FlashVSR arch module is not available. The vendored 'flashvsr_arch' package must be installed before this restorer can be used."
+  },
+  "sr_evtexture": {
+    "status": "failed",
+    "error": "EvTexture arch unavailable: No module named 'restorax.restorers.super_resolution.evtexture_arch'"
   },
   "face_codeformer": {
     "status": "failed",
     "error": "codeformer-pytorch and facexlib are required. Install with: pip install codeformer-pytorch facexlib"
   },
+  "face_codeformer_pp": {
+    "status": "failed",
+    "error": "CodeFormer++ arch module unavailable: No module named 'restorax.restorers.face_restoration.codeformer_pp_arch'. Install the codeformer_pp_arch package to use this restorer."
+  },
+  "face_gfpgan": {
+    "status": "failed",
+    "error": "404 Client Error. (Request ID: Root=1-6a40295d-0fae20802d29c3fb3d355de3;483cf7a7-c6c4-4fc7-baaf-79843f4b74f2)\n\nRepository Not Found for url: https://huggingface.co/TencentARC/GFPGANv1.4/resolve/main/G"
+  },
+  "face_dicface": {
+    "status": "failed",
+    "error": "DicFace architecture module is required. Install with: pip install restorax[dicface]"
+  },
   "colorization_ddcolor": {
     "status": "failed",
-    "error": "404 Client Error. (Request ID: Root=1-6a402824-5c7bc46a3d81e9a0132e2759;fb358e57-7712-434c-8bed-dd15c5baf7ce)\n\nRepository Not Found for url: https://huggingface.co/piddnad/ddcolor_models/resolve/main/ddcolor_artistic.pth.\nPlease make sure you specified the correct `repo_id` and `repo_type`.\nIf you are trying to access a private or gated repo, make sure you are authenticated and your token has the required permissions.\nFor more details, see https://huggingface.co/docs/huggingface_hub/authentication"
+    "error": "404 Client Error. (Request ID: Root=1-6a40295d-2a5707c625fa864c2468b434;c7aeacb6-b7b3-42ca-88e2-e06afd1f760a)\n\nRepository Not Found for url: https://huggingface.co/piddnad/ddcolor_models/resolve/main/"
   },
-  "deinterlace_yadif": {
+  "interp_rife": {
     "status": "real",
-    "model": "YADIF (classical)",
+    "model": "RIFERestorer",
+    "elapsed_s": 0.15
+  },
+  "artifact_scratch": {
+    "status": "failed",
+    "error": "ProPainter arch not vendored \u2014 cannot load ScratchRemoval restorer. Add restorax/restorers/artifact_removal/propainter_arch.py."
+  },
+  "hdr_tvdm": {
+    "status": "failed",
+    "error": "HDRTVDM architecture module not vendored; cannot load model"
+  },
+  "stab_deepflow": {
+    "status": "real",
+    "model": "VideoStabilizationRestorer",
+    "elapsed_s": 0.0
+  },
+  "stab_gavs": {
+    "status": "real",
+    "model": "GaVSRestorer",
+    "elapsed_s": 0.0
+  },
+  "deint_ai": {
+    "status": "failed",
+    "error": "AIDeinterlaceRestorer requires the vendored deinterlace_arch module (DeinterlaceNet) which is not installed: No module named 'restorax.restorers.deinterlacing.deinterlace_arch'"
+  },
+  "deint_yadif": {
+    "status": "real",
+    "model": "YadifDeinterlaceRestorer",
     "elapsed_s": 0.0
   },
   "audio_demucs": {
     "status": "real",
-    "model": "Demucs htdemucs",
-    "elapsed_s": 1.18
+    "model": "DemucsRestorer",
+    "elapsed_s": 0.97
   },
   "audio_voicefixer": {
     "status": "real",
-    "model": "VoiceFixer",
-    "elapsed_s": 3.44
+    "model": "VoiceFixerRestorer",
+    "elapsed_s": 3.6
+  },
+  "audio_rnnoise": {
+    "status": "real",
+    "model": "RNNoiseRestorer",
+    "elapsed_s": 0.0
   }
 }

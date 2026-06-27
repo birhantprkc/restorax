@@ -47,6 +47,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Sample Restorations: samples.md
   - Getting Started:
     - Installation: guides/installation.md
     - Quick Start: guides/quickstart.md
