@@ -94,7 +94,7 @@ Processes defined in [Procfile.dev](Procfile.dev):
 |---|---|---|
 | `api` | <http://localhost:8000> | FastAPI REST API + WebSocket |
 | `worker` | — | Celery GPU worker |
-| `frontend` | <http://localhost:3000> | Next.js web UI |
+| `frontend` | <http://localhost:3000> | Vite + React 18 web UI |
 | `flower` | <http://localhost:5555> | Celery monitor (optional) |
 
 ### 7. Verify installation
@@ -102,13 +102,13 @@ Processes defined in [Procfile.dev](Procfile.dev):
 ```bash
 # Python tests (unit + integration + system)
 python -m pytest tests/ -q
-# 309 passed
+# 515 passed
 
 # Frontend tests
 cd frontend && npm test
 # 25 passed
 
-restorax models    # lists all 26 video + 3 audio restorers
+restorax models    # lists all 25 restorers (22 video + 3 audio)
 restorax presets   # lists all 7 built-in pipeline presets
 ```
 
@@ -168,17 +168,13 @@ restorax/
 │   │   └── onnx_export.py     Export restorer models to ONNX
 │   ├── config.py              Settings(BaseSettings) — reads .env
 │   └── cli.py                 Click CLI: run / models / presets
-├── frontend/                  Next.js 14 web UI
-│   ├── app/                   App Router pages
-│   │   ├── page.tsx           Job dashboard
-│   │   └── jobs/[id]/page.tsx Job detail + progress + download
-│   ├── components/
-│   │   ├── JobForm.tsx        Upload + pipeline selector
-│   │   ├── ProgressBar.tsx    WebSocket-driven live progress
-│   │   ├── CompareSlider.tsx  react-compare-slider before/after
-│   │   └── JobCard.tsx        Job summary card
-│   ├── lib/api.ts             Typed API client + WebSocket helper
-│   └── tests/                 Vitest component + API lib tests (25 tests)
+├── frontend/                  React 18 + Vite web UI (shadcn/ui + React Flow)
+│   ├── src/
+│   │   ├── pages/             Job dashboard, builder, job detail
+│   │   ├── components/        shadcn/ui component wrappers + custom nodes
+│   │   ├── builder/           React Flow pipeline builder (/builder)
+│   │   └── lib/api.ts         Typed API client + WebSocket helper
+│   └── tests/                 Vitest component + API lib tests
 ├── configs/presets/           YAML pipeline presets
 ├── tests/
 │   ├── conftest.py            Shared fixtures (synthetic video, IdentityRestorer)
@@ -290,7 +286,7 @@ Logs from all processes are printed with colour-coded prefixes:
 ```
 09:41:03 api.1      | INFO:     Uvicorn running on http://0.0.0.0:8000
 09:41:03 worker.1   | [2026-04-25 09:41:03,512: INFO] celery@host ready.
-09:41:03 frontend.1 | ▲ Next.js 16  - Local: http://localhost:3000
+09:41:03 frontend.1 | VITE v6.4.2  ready in 312 ms — Local: http://localhost:3000
 09:41:03 flower.1   | [I 09:41:03.781 ...] Inspect method inspector.
 ```
 
@@ -325,7 +321,7 @@ docker compose up --build
 ## Running tests
 
 ```bash
-# All tests (226 unit + 11 integration = 237 total)
+# All tests (515+ total: unit + integration + system)
 python -m pytest tests/ -q
 
 # Unit tests only (fastest, no services needed)

@@ -50,7 +50,7 @@ Processes:
 |---|---|---|
 | `api` | <http://localhost:8000> | FastAPI REST API + WebSocket |
 | `worker` | — | Celery GPU worker |
-| `frontend` | <http://localhost:3000> | Next.js web UI |
+| `frontend` | <http://localhost:3000> | Vite + React 18 web UI |
 | `flower` | <http://localhost:5555> | Celery task monitor (optional) |
 
 API docs live at <http://localhost:8000/docs>

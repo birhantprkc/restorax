@@ -15,6 +15,8 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -104,5 +106,6 @@ services:
       - monitoring  # start with: docker compose -f docker-compose.dev.yml --profile monitoring up
 
 volumes:
+  redis_dev_data:
   dev_data:
   dev_models:

@@ -2,9 +2,10 @@
 
 **Modern AI video restoration platform for old films, series, and archival footage.**
 
-RestoraX combines 12 state-of-the-art deep learning models into a single modular pipeline:
+RestoraX combines 25 state-of-the-art deep learning models into a single modular pipeline:
 upscale, colorize, restore faces, remove scratches, deinterlace, stabilize, boost frame rate,
-and convert to HDR — all orchestrated by a REST API, web UI, and CLI.
+and convert to HDR — all orchestrated by a REST API, Pipeline DAG engine, visual node builder,
+ComfyUI node pack, and CLI.
 
 ## Quick links
 
@@ -17,11 +18,20 @@ and convert to HDR — all orchestrated by a REST API, web UI, and CLI.
 
 | Category | Models | Scale |
 |---|---|---|
-| Super-Resolution | Real-ESRGAN, BasicVSR++, VRT, Upscale-A-Video | 2×–8× |
-| Colorization | DDColor | 1× |
-| Face Restoration | CodeFormer, GFPGAN | 1× |
-| Frame Interpolation | RIFE v4.22 | 2× FPS |
-| Scratch & Dust | ProPainter | 1× |
-| Deinterlacing | AI + YADIF | 1× |
-| Stabilization | Optical flow | 1× |
-| SDR → HDR | HDRTVDM | 1× |
+| **Super-Resolution** (10) | Real-ESRGAN, BasicVSR++, VRT, MambaIR, Upscale-A-Video, TDM, SeedVR, EVTexture, FlashVSR, Waifu2x | 2×–8× |
+| **Colorization** (1) | DDColor | 1× |
+| **Face Restoration** (4) | CodeFormer, CodeFormer++, GFPGAN, DICFace | 1× |
+| **Frame Interpolation** (1) | RIFE v4.22 | 2× FPS |
+| **Scratch & Dust** (1) | ProPainter | 1× |
+| **Deinterlacing** (2) | AI Deinterlacer + YADIF | 1× |
+| **Stabilization** (2) | GaVS + Deep Flow | 1× |
+| **SDR → HDR** (1) | HDRTVDM (CVPR 2023) | 1× |
+| **Audio Restoration** (3) | Demucs, VoiceFixer, RNNoise | — |
+
+## Architecture highlights
+
+- **Pipeline DAG engine** — typed ports, parallel branches, merge strategies, retry policies
+- **React Flow visual builder** — drag-and-drop node canvas at `/builder`
+- **ComfyUI node pack** — 25 custom nodes in `comfyui_nodes/`, installable as a ComfyUI plugin
+- **REST API + WebSocket** — submit jobs, stream progress, download results
+- **CLI** — single-command restoration without running the server

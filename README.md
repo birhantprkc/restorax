@@ -2,12 +2,12 @@
 
 **Open-source AI video restoration toolkit for old films, home videos, and archival footage.**
 
-[![Tests](https://img.shields.io/badge/tests-430%2B%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-515%2B%20passing-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.11-blue)](pyproject.toml)
 [![PyTorch](https://img.shields.io/badge/pytorch-2.3%2B-orange)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-RestoraX combines 21 AI models into a single, modular restoration pipeline with a **visual node-based pipeline builder**, REST API, and CLI — designed to be a competitive open-source alternative to Topaz Video AI and DaVinci Resolve Super Scale.
+RestoraX combines 25 AI models into a single, modular restoration pipeline with a **visual node-based pipeline builder**, REST API, and CLI — designed to be a competitive open-source alternative to Topaz Video AI and DaVinci Resolve Super Scale.
 
 Beyond linear presets, RestoraX ships a **Pipeline DAG Engine** (typed ports, parallel branches, merge strategies, retry policies, per-branch progress) and a **ComfyUI-style visual builder** — drag restorers onto a canvas, wire them into branching graphs, and run them with live progress.
 
@@ -15,17 +15,17 @@ Beyond linear presets, RestoraX ships a **Pipeline DAG Engine** (typed ports, pa
 
 ## What RestoraX Does
 
-| Restoration Task | Models | Input → Output |
+| Restoration Task | Models (25 total) | Input → Output |
 |---|---|---|
-| **Super-Resolution** | Real-ESRGAN, BasicVSR++, MambaIR, VRT, Upscale-A-Video, TDM | SD → HD, HD → 4K |
-| **Colorization** | DDColor | Black & white → natural color |
-| **Face Restoration** | CodeFormer, CodeFormer++, GFPGAN | Blurry faces → sharp |
-| **Frame Interpolation** | RIFE v4.22 | 24fps → 48fps, slow-motion |
-| **Scratch & Dust Removal** | ProPainter | Film scratches → clean |
-| **Deinterlacing** | AI + YADIF | Combed fields → progressive |
-| **Stabilization** | Optical flow (GaVS-ready) | Shaky → smooth |
-| **SDR → HDR** | HDRTVDM (CVPR 2023) | SDR → HDR10 |
-| **Audio Restoration** | Demucs, VoiceFixer, RNNoise | Crackle/noise → clean |
+| **Super-Resolution** (10) | Real-ESRGAN, BasicVSR++, MambaIR, VRT, Upscale-A-Video, TDM, SeedVR, EVTexture, FlashVSR, Waifu2x | SD → HD, HD → 4K |
+| **Colorization** (1) | DDColor | Black & white → natural color |
+| **Face Restoration** (4) | CodeFormer, CodeFormer++, GFPGAN, DICFace | Blurry faces → sharp |
+| **Frame Interpolation** (1) | RIFE v4.22 | 24fps → 48fps, slow-motion |
+| **Scratch & Dust Removal** (1) | ProPainter | Film scratches → clean |
+| **Deinterlacing** (2) | AI Deinterlacer + YADIF | Combed fields → progressive |
+| **Stabilization** (2) | GaVS + Deep Flow Stab | Shaky → smooth |
+| **SDR → HDR** (1) | HDRTVDM (CVPR 2023) | SDR → HDR10 |
+| **Audio Restoration** (3) | Demucs, VoiceFixer, RNNoise | Crackle/noise → clean |
 
 ---
 
@@ -34,7 +34,7 @@ Beyond linear presets, RestoraX ships a **Pipeline DAG Engine** (typed ports, pa
 ### 1. Install
 
 ```bash
-git clone https://github.com/yourname/restorax && cd restorax
+git clone https://github.com/karailker/restorax && cd restorax
 conda create -n restorax python=3.11 && conda activate restorax
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 pip install -e . && pip install basicsr av opencv-python-headless
