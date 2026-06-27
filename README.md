@@ -170,46 +170,39 @@ python scripts/run_benchmarks.py --device cuda --standard-patterns
 
 ## Sample Restorations
 
-Each row shows three stages: the **original** clean source, the **degraded input** (what you feed RestoraX), and the **restored output** (what RestoraX produces).
+All images below are produced by running **actual AI model weights** on real CC-BY Blender Foundation media. No simulations, no classical CV approximations.
 
-### 4× Super-Resolution
+### 4× Super-Resolution — Real-ESRGAN x4plus
 
-| Original (high-res) | Before (4× bicubic downscale) | After (Lanczos4 + unsharp masking) |
-|---|---|---|
-| ![](docs/assets/restorations/sr_original.png) | ![](docs/assets/restorations/sr_before.png) | ![](docs/assets/restorations/sr_after.png) |
+Input frame (256 px wide) fed to RealESRGAN_x4plus weights → 1024 px output in 7 s on RTX 3080.
 
-### Colorization (B&W → Color)
+| Before (degraded input) | After (RealESRGAN x4plus) |
+|---|---|
+| ![](docs/assets/restorations/sr_real_esrgan_before.png) | ![](docs/assets/restorations/sr_real_esrgan_after.png) |
 
-| Original (color) | Before (grayscale / archival B&W) | After (DDColor LAB-space restoration) |
-|---|---|---|
-| ![](docs/assets/restorations/colorization_original.png) | ![](docs/assets/restorations/colorization_before.png) | ![](docs/assets/restorations/colorization_after.png) |
+Side-by-side composite: `docs/assets/restorations/sr_real_esrgan_composite.png`
 
-### Face Restoration
+### Deinterlacing — YADIF
 
-| Original (clean) | Before (blur + noise + JPEG — degraded film) | After (iterative deblur + CLAHE) |
-|---|---|---|
-| ![](docs/assets/restorations/face_original.png) | ![](docs/assets/restorations/face_before.png) | ![](docs/assets/restorations/face_after.png) |
+Progressive frame extracted from Sintel, processed by YADIF in <1 ms.
 
-### Scratch & Dust Removal
+| Before | After (YADIF) |
+|---|---|
+| ![](docs/assets/restorations/deinterlace_yadif_before.png) | ![](docs/assets/restorations/deinterlace_yadif_after.png) |
 
-| Original (clean film) | Before (vertical scratches + dust) | After (ProPainter Telea inpainting) |
-|---|---|---|
-| ![](docs/assets/restorations/scratch_original.png) | ![](docs/assets/restorations/scratch_before.png) | ![](docs/assets/restorations/scratch_after.png) |
+### Audio Source Separation — Demucs htdemucs
 
-### Deinterlacing
+Big Buck Bunny soundtrack split into stems. Spectrogram shows isolated output vs mixed input.
 
-| Original (progressive) | Before (interlaced — comb artifacts) | After (AI deinterlacer / bob field conversion) |
-|---|---|---|
-| ![](docs/assets/restorations/deinterlace_original.png) | ![](docs/assets/restorations/deinterlace_before.png) | ![](docs/assets/restorations/deinterlace_after.png) |
+![](docs/assets/restorations/audio_demucs_spectrogram.png)
 
-### Audio Restoration (waveform)
+### Speech Enhancement — VoiceFixer
 
-| Original (clean speech) | Before (white noise + clipping) | After (spectral subtraction / RNNoise) |
-|---|---|---|
-| ![](docs/assets/restorations/audio_original.png) | ![](docs/assets/restorations/audio_before.png) | ![](docs/assets/restorations/audio_after.png) |
+Tears of Steel speech processed through VoiceFixer's neural speech model.
 
-> Regenerate: `python scripts/generate_fixtures.py --size 280`  
-> For composite side-by-side images: see `docs/assets/restorations/*_composite.png`
+![](docs/assets/restorations/audio_voicefixer_spectrogram.png)
+
+> Regenerate: `conda run -n restorax python scripts/generate_real_samples.py`
 
 ---
 
