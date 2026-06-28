@@ -34,7 +34,7 @@ from restorax.core.restorer import (
 
 logger = logging.getLogger(__name__)
 
-_HF_REPO = "sczhou/CodeFormer"
+_WEIGHT_URL = "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth"
 _WEIGHT_FILE = "codeformer.pth"
 _FACE_PARSE_MODEL = "parsing_parsenet.pth"
 
@@ -201,16 +201,10 @@ class CodeFormerRestorer(BaseRestorer):
 
     @staticmethod
     def _download_weights(model_dir: Path) -> Path:
-        try:
-            from huggingface_hub import hf_hub_download
-        except ImportError as exc:
-            raise RestorerLoadError("huggingface_hub required.") from exc
+        import urllib.request
 
-        logger.info("Downloading CodeFormer weights…")
+        logger.info("Downloading CodeFormer weights from GitHub releases…")
         model_dir.mkdir(parents=True, exist_ok=True)
-        path = hf_hub_download(
-            repo_id=_HF_REPO,
-            filename=f"CodeFormer/{_WEIGHT_FILE}",
-            local_dir=str(model_dir),
-        )
-        return Path(path)
+        dest = model_dir / _WEIGHT_FILE
+        urllib.request.urlretrieve(_WEIGHT_URL, dest)
+        return dest

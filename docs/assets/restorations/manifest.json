@@ -2,11 +2,11 @@
   "sr_real_esrgan": {
     "status": "real",
     "model": "RealESRGANx4Restorer",
-    "elapsed_s": 6.41
+    "elapsed_s": 52.38
   },
   "sr_basicvsr_pp": {
     "status": "failed",
-    "error": "404 Client Error. (Request ID: Root=1-6a40295b-0a0d52f967d58a381d4abc0f;f3c5b192-38d7-4c43-8a61-6f04516f5f45)\n\nEntry Not Found for url: https://huggingface.co/Iceclear/StableSR/resolve/main/BasicVSR_P"
+    "error": "BasicVSR++ weights (BasicVSR_PlusPlus_REDS4.pth) have no public mirror. Download manually from https://github.com/ckkelvinchan/BasicVSR_PlusPlus and place at models/basicvsr_pp/BasicVSR_PlusPlus_REDS4"
   },
   "sr_upscale_a_video": {
     "status": "failed",
@@ -49,8 +49,9 @@
     "error": "CodeFormer++ arch module unavailable: No module named 'restorax.restorers.face_restoration.codeformer_pp_arch'. Install the codeformer_pp_arch package to use this restorer."
   },
   "face_gfpgan": {
-    "status": "failed",
-    "error": "404 Client Error. (Request ID: Root=1-6a40295d-0fae20802d29c3fb3d355de3;483cf7a7-c6c4-4fc7-baaf-79843f4b74f2)\n\nRepository Not Found for url: https://huggingface.co/TencentARC/GFPGANv1.4/resolve/main/G"
+    "status": "real",
+    "model": "GFPGANRestorer",
+    "elapsed_s": 36.77
   },
   "face_dicface": {
     "status": "failed",
@@ -58,12 +59,12 @@
   },
   "colorization_ddcolor": {
     "status": "failed",
-    "error": "404 Client Error. (Request ID: Root=1-6a40295d-2a5707c625fa864c2468b434;c7aeacb6-b7b3-42ca-88e2-e06afd1f760a)\n\nRepository Not Found for url: https://huggingface.co/piddnad/ddcolor_models/resolve/main/"
+    "error": "404 Client Error. (Request ID: Root=1-6a40ffc0-4ddad65137b982745c77c173;34f61590-ba0d-4939-a344-841a47c548c9)\n\nRepository Not Found for url: https://huggingface.co/piddnad/ddcolor_models/resolve/main/"
   },
   "interp_rife": {
     "status": "real",
     "model": "RIFERestorer",
-    "elapsed_s": 0.15
+    "elapsed_s": 0.25
   },
   "artifact_scratch": {
     "status": "failed",
@@ -95,12 +96,12 @@
   "audio_demucs": {
     "status": "real",
     "model": "DemucsRestorer",
-    "elapsed_s": 0.97
+    "elapsed_s": 4.59
   },
   "audio_voicefixer": {
     "status": "real",
     "model": "VoiceFixerRestorer",
-    "elapsed_s": 3.6
+    "elapsed_s": 25.91
   },
   "audio_rnnoise": {
     "status": "real",
