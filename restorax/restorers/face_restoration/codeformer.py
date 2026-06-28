@@ -87,12 +87,11 @@ class CodeFormerRestorer(BaseRestorer):
 
     def load(self, device: torch.device) -> None:
         try:
-            from codeformer.basicsr.archs.codeformer_arch import CodeFormer
+            from restorax.restorers.face_restoration.codeformer_arch import CodeFormer
             from facexlib.utils.face_restoration_helper import FaceRestoreHelper
         except ImportError as exc:
             raise RestorerLoadError(
-                "codeformer-pytorch and facexlib are required. "
-                "Install with: pip install codeformer-pytorch facexlib"
+                "facexlib is required: pip install facexlib"
             ) from exc
 
         weight_path = self._resolve_weight_path()
