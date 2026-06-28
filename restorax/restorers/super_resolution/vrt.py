@@ -159,9 +159,7 @@ class VRTRestorer(BaseRestorer):
             logger.info("VRT loaded from BasicSR arch")
             return model
         except (ImportError, Exception) as exc:
-            raise RestorerLoadError(
-                f"VRT arch unavailable: {exc}. Install basicsr: pip install basicsr"
-            ) from exc
+            raise RestorerLoadError(f"VRT load failed: {exc}") from exc
 
 
 def _download_weights(model_dir: Path) -> Path:
