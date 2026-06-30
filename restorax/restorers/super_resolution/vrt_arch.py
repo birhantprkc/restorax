@@ -1,5 +1,8 @@
-# Vendored from https://github.com/JingyunLiang/VRT (BSD License)
+# Vendored from https://github.com/JingyunLiang/VRT (CC BY-NC 4.0 — non-commercial use only)
 # Source: models/network_vrt.py
+# The VRT repo is licensed CC BY-NC 4.0; see https://github.com/JingyunLiang/VRT/blob/main/LICENSE.
+# This file carries an inherited Facebook BSD attribution notice (below) from its derivative source;
+# the non-commercial terms of the upstream repo take precedence for redistribution.
 # Copyright (c) Facebook, Inc. and its affiliates.
 #
 # This source code is licensed under the BSD license found in the

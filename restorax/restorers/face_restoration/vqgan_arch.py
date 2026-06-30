@@ -1,5 +1,6 @@
-# Vendored from https://github.com/sczhou/CodeFormer (MIT License)
+# Vendored from https://github.com/sczhou/CodeFormer (NTU S-Lab License 1.0 — non-commercial use only)
 # Source: basicsr/archs/vqgan_arch.py — imports adapted for restorax
+# See https://github.com/sczhou/CodeFormer/blob/master/LICENSE for full terms.
 '''
 VQGAN code, adapted from the original created by the Unleashing Transformers authors:
 https://github.com/samb-t/unleashing-transformers/blob/master/models/vqgan.py

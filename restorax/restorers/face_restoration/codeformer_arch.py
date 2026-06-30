@@ -1,5 +1,6 @@
-# Vendored from https://github.com/sczhou/CodeFormer (MIT License)
+# Vendored from https://github.com/sczhou/CodeFormer (NTU S-Lab License 1.0 — non-commercial use only)
 # Source: basicsr/archs/codeformer_arch.py — imports adapted for restorax
+# See https://github.com/sczhou/CodeFormer/blob/master/LICENSE for full terms.
 import math
 import numpy as np
 import torch
