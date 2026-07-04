@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import builtins
+import sys
+import types
 from unittest.mock import patch
 
 import pytest
@@ -38,3 +40,16 @@ class TestUpscaleAVideoLoadRaisesWhenArchAbsent:
         ):
             with pytest.raises(RestorerLoadError):
                 UpscaleAVideoRestorer().load(torch.device("cpu"))
+
+
+class TestUpscaleAVideoPipelineShim:
+    def test_pipeline_is_constructible(self):
+        # `upscale_a_video_arch` requires `diffusers` at import time (it's not
+        # installed in this env) — stub it out so we can exercise the shim class.
+        sys.modules.setdefault("diffusers", types.ModuleType("diffusers"))
+        from restorax.restorers.super_resolution.upscale_a_video_arch import (
+            UpscaleAVideoPipeline,
+        )
+
+        pipe = UpscaleAVideoPipeline()
+        assert pipe.to(torch.device("cpu")) is pipe
