@@ -33,7 +33,7 @@ from restorax.core.restorer import (
 
 logger = logging.getLogger(__name__)
 
-_HF_REPO = "DachunKai/EvTexture"
+_WEIGHT_URL = "https://github.com/DachunKai/EvTexture/releases/download/v0.0/EvTexture_REDS_BIx4.pth"
 _WEIGHT_FILE = "evtexture_x4.pth"
 
 
@@ -123,10 +123,19 @@ class EvTextureRestorer(BaseRestorer):
             from restorax.config import settings
             weight_path = Path(settings.model_dir) / "evtexture" / _WEIGHT_FILE
             if not weight_path.exists():
-                from huggingface_hub import hf_hub_download
+                import shutil
+                import urllib.error
+                import urllib.request
+
                 weight_path.parent.mkdir(parents=True, exist_ok=True)
-                hf_hub_download(repo_id=_HF_REPO, filename=_WEIGHT_FILE,
-                                local_dir=str(weight_path.parent))
+                try:
+                    with (
+                        urllib.request.urlopen(_WEIGHT_URL, timeout=30) as response,  # noqa: S310
+                        open(weight_path, "wb") as out_file,
+                    ):
+                        shutil.copyfileobj(response, out_file)
+                except (urllib.error.URLError, OSError) as exc:
+                    raise RestorerLoadError(f"Cannot download EvTexture weights: {exc}") from exc
             model = EvTexture(scale=4)
             ckpt = torch.load(weight_path, map_location="cpu", weights_only=True)
             model.load_state_dict(ckpt.get("params", ckpt), strict=False)
