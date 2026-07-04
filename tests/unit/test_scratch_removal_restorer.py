@@ -38,3 +38,47 @@ class TestScratchRemovalLoadRaisesWhenArchAbsent:
         with patch("builtins.__import__", side_effect=mock_import):
             with pytest.raises(RestorerLoadError):
                 ScratchRemovalRestorer().load(torch.device("cpu"))
+
+
+class TestProPainterPipelineVendored:
+    """Smoke test for the vendored ProPainter arch (propainter_arch.py)."""
+
+    def test_pipeline_constructs_with_matching_state_dicts(self, tmp_path):
+        """
+        ProPainterPipeline loads real checkpoints via strict state_dict loading.
+        Rather than requiring a multi-GB download in CI, we save the state_dict
+        of freshly-constructed (randomly initialized) real sub-networks and
+        confirm ProPainterPipeline's real weight-loading path runs end-to-end.
+        """
+        import argparse
+
+        from restorax.restorers.artifact_removal.propainter.propainter import InpaintGenerator
+        from restorax.restorers.artifact_removal.propainter.raft.raft import RAFT
+        from restorax.restorers.artifact_removal.propainter.recurrent_flow_completion import (
+            RecurrentFlowCompleteNet,
+        )
+        from restorax.restorers.artifact_removal.propainter_arch import ProPainterPipeline
+
+        raft_args = argparse.Namespace(small=False, mixed_precision=False, alternate_corr=False)
+        raft_state = {f"module.{k}": v for k, v in RAFT(raft_args).state_dict().items()}
+        flow_state = RecurrentFlowCompleteNet().state_dict()
+        inpaint_state = InpaintGenerator(init_weights=False).state_dict()
+
+        for filename, state in [
+            ("raft-things.pth", raft_state),
+            ("recurrent_flow_completion.pth", flow_state),
+            ("ProPainter.pth", inpaint_state),
+        ]:
+            torch.save(state, tmp_path / filename)
+
+        pipeline = ProPainterPipeline(weight_dir=str(tmp_path), device=torch.device("cpu"))
+
+        assert pipeline.model is not None
+        assert pipeline.fix_flow_complete is not None
+        assert pipeline.fix_raft is not None
+
+    def test_pipeline_raises_when_weights_missing(self, tmp_path):
+        from restorax.restorers.artifact_removal.propainter_arch import ProPainterPipeline
+
+        with pytest.raises(FileNotFoundError):
+            ProPainterPipeline(weight_dir=str(tmp_path), device=torch.device("cpu"))
