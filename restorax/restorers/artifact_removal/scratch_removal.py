@@ -36,8 +36,6 @@ from restorax.core.restorer import (
 
 logger = logging.getLogger(__name__)
 
-_WEIGHT_DIR = "weights"
-
 # Temporal difference threshold for scratch detection (0–255 scale)
 _SCRATCH_THRESHOLD = 40
 # Minimum scratch width in pixels to be considered a scratch (not noise)
@@ -198,8 +196,8 @@ class ScratchRemovalRestorer(BaseRestorer):
             from restorax.config import settings
 
             weight_dir = Path(settings.model_dir) / "propainter"
-            if not weight_dir.exists():
-                weight_dir.mkdir(parents=True)
+            if any(not (weight_dir / f).exists() for f in _WEIGHT_FILES):
+                weight_dir.mkdir(parents=True, exist_ok=True)
                 _download_propainter_weights(weight_dir)
             model = ProPainterPipeline(weight_dir=str(weight_dir), device=device)
             logger.info("ProPainter arch loaded from vendored module")
@@ -219,6 +217,8 @@ def _download_propainter_weights(weight_dir: Path) -> None:
 
     for filename in _WEIGHT_FILES:
         dest = weight_dir / filename
+        if dest.exists():
+            continue
         url = f"{_WEIGHT_BASE_URL}/{filename}"
         logger.info("Downloading ProPainter weight %s from GitHub releases…", filename)
         try:

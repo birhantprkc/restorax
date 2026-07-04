@@ -374,12 +374,12 @@ class VQAutoEncoder(nn.Module):
         )
 
         if model_path is not None:
-            chkpt = torch.load(model_path, map_location='cpu')
+            chkpt = torch.load(model_path, map_location='cpu', weights_only=True)
             if 'params_ema' in chkpt:
-                self.load_state_dict(torch.load(model_path, map_location='cpu')['params_ema'])
+                self.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=True)['params_ema'])
                 logger.info(f'vqgan is loaded from: {model_path} [params_ema]')
             elif 'params' in chkpt:
-                self.load_state_dict(torch.load(model_path, map_location='cpu')['params'])
+                self.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=True)['params'])
                 logger.info(f'vqgan is loaded from: {model_path} [params]')
             else:
                 raise ValueError(f'Wrong params!')
@@ -425,11 +425,11 @@ class VQGANDiscriminator(nn.Module):
         self.main = nn.Sequential(*layers)
 
         if model_path is not None:
-            chkpt = torch.load(model_path, map_location='cpu')
+            chkpt = torch.load(model_path, map_location='cpu', weights_only=True)
             if 'params_d' in chkpt:
-                self.load_state_dict(torch.load(model_path, map_location='cpu')['params_d'])
+                self.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=True)['params_d'])
             elif 'params' in chkpt:
-                self.load_state_dict(torch.load(model_path, map_location='cpu')['params'])
+                self.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=True)['params'])
             else:
                 raise ValueError(f'Wrong params!')
 
