@@ -177,19 +177,19 @@ All 25 restorers as ComfyUI custom nodes (`comfyui_nodes/`), distributed via Com
 
 ### 4.3a Arch Vendoring — 15 remaining models
 
-10 of 25 models have real benchmarked samples. `feat/arch-vendoring-benchmarks` (merged, PR #25) vendored VRT (CC BY-NC 4.0) + CodeFormer (NTU S-Lab 1.0 NC) arch.
+13 of 25 models have real benchmarked samples. `feat/arch-vendoring-benchmarks` (merged, PR #25) vendored VRT (CC BY-NC 4.0) + CodeFormer (NTU S-Lab 1.0 NC) arch.
 
-**Wave 1 — DONE (arch vendored for all 4, weights still blocked for all 4):**
-- Waifu2x — `waifu2x_arch.py` (`UpConv_7`, **GPLv3**, yu45020/Waifu2x — accepted exception to the NC-only precedent). No plain-loadable checkpoint publicly available (upstream only ships 7z archives) — left an honest `RestorerLoadError`, previous weight source (`deepghs/waifu2x`) was fabricated/404.
-- EvTexture — `evtexture_arch.py` (Apache-2.0, DachunKai/EvTexture). Weight repo `DachunKai/EvTexture` on HF still 404 — separate fix needed.
-- Upscale-A-Video — `upscale_a_video_arch.py` (S-Lab 1.0 NC). Honest adapter shim only — real pipeline is ~6000 LOC of custom UNet/attention/temporal modules, not a thin `diffusers` wrapper as assumed; `diffusers` itself isn't installed. Real inference still doesn't work.
-- ProPainter (scratch removal) — `propainter_arch.py` + `propainter/` subpackage (NTU S-Lab 1.0 NC). Full inference pipeline ported (not simplified), verified via state_dict shape-matching. Weight download bug found: `snapshot_download(repo_id="sczhou/ProPainter")` uses `repo_type="model"` but that HF repo is a Space — 404, needs `repo_type="space"` or a switch to GitHub Releases.
+**Wave 1 — DONE, 3/4 now fully real (arch + weights verified end-to-end):**
+- Waifu2x — ✅ real. `waifu2x_arch.py` (`UpConv_7`, **GPLv3**, yu45020/Waifu2x — accepted exception to the NC-only precedent). Previous weight source (`deepghs/waifu2x`) was fabricated/404; upstream only ships 7z-archived JSON weights (nagadomi's original export format, not a state_dict) — the vendored `UpConv_7.load_pre_train_weights` already handled that format, just needed wiring up. Added `py7zr` as a new optional dep (`restorax[waifu2x]`) to extract the archive at download time.
+- EvTexture — ✅ real. `evtexture_arch.py` (Apache-2.0, DachunKai/EvTexture). HF weight repo was dead; real checkpoint (`EvTexture_REDS_BIx4.pth`) found on GitHub Releases v0.0 — 0 missing/0 unexpected keys across all 424 params.
+- ProPainter (scratch removal) — ✅ real. `propainter_arch.py` + `propainter/` subpackage (NTU S-Lab 1.0 NC). Full inference pipeline ported (not simplified). Weight download bug: `snapshot_download(repo_id="sczhou/ProPainter")` used `repo_type="model"` but that HF repo is a Space with no hosted weights — switched to GitHub Releases v0.1.0 (raft-things.pth, recurrent_flow_completion.pth, ProPainter.pth).
+- Upscale-A-Video — still ❌ arch. Honest adapter shim only — real pipeline is ~6000 LOC of custom UNet/attention/temporal modules, not a thin `diffusers` wrapper as assumed; `diffusers` itself isn't installed. Real inference still doesn't work — this is the one Wave-1 model needing substantially more work than a weight-source fix.
 - Filename note: the actual vendored file is `propainter_arch.py` (this doc previously had a typo, `propinter_arch.py`).
 
-**Remaining (11), grouped by failure mode:**
+**Remaining (8), grouped by failure mode:**
 - **Vendor arch module (7):** mamba_ir (`mamba_ir_arch`, `[sr]` extra / `mamba-ssm`; upstream repo location unclear, 404s), tdm + seedvr (`tdm_arch`/`seedvr_arch`, diffusion/`diffusers`), flashvsr (`flashvsr_arch`, upstream unclear), codeformer_pp (`codeformer_pp_arch` — no confirmed upstream, may need to retire in favor of RestoreFormer/VQFR), dicface (`[dicface]` extra, upstream/license unconfirmed), hdr_tvdm (`hdr_tvdm_arch`, upstream 404s), ai_deinterlace (`deinterlace_arch`, upstream unclear).
-- **Weight-mirror-only, arch already vendored (4):** waifu2x, evtexture, upscale_a_video (partial — needs the real arch too), propainter scratch — see Wave 1 notes above.
-- **Dead/missing weights, arch fix already done (2):** basicvsr_pp (no public mirror), vrt (needs weight source).
+- **Real pipeline still needed, arch is only a shim (1):** upscale_a_video — see Wave 1 notes above.
+- **Dead/missing weights, arch fix already done (2):** basicvsr_pp (no public mirror), vrt (needs weight source — same GitHub-Releases pattern that worked for EvTexture/ProPainter may be worth re-checking here).
 - **Arch AND weights (1):** ddcolor — `ddcolor_arch` not vendored (HF repo `piddnad/DDColor` source unconfirmed); weight repo `piddnad/ddcolor_models` also gone.
 
 Convention per repo: sub-agents on **disjoint arch files + one restorer each**; parent owns `restorers/__init__` registration + commits. No worktree isolation (editable install breaks pytest imports). License header + source attribution required (match `vrt_arch.py`/`codeformer_arch.py` precedent) — verify the LICENSE file live before vendoring, don't assume from training data (this repo has been burned by wrong MIT/BSD claims twice already).

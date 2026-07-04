@@ -65,16 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
 | 5 | MambaIR | ❌ arch | `mamba_ir_arch` not vendored; `pip install mamba-ssm` needed |
 | 6 | TDM | ❌ weights | Diffusion model; no public weights released |
 | 7 | SeedVR | ❌ weights | Diffusion model; no public weights released |
-| 8 | Waifu2x | ❌ weights | Arch vendored (`UpConv_7`, GPLv3, yu45020/Waifu2x); no plain-loadable checkpoint publicly available (upstream only ships 7z archives) |
+| 8 | Waifu2x | ✅ real | Arch vendored (`UpConv_7`, GPLv3, yu45020/Waifu2x); weights downloaded+extracted from upstream 7z via `py7zr` (`restorax[waifu2x]`) |
 | 9 | FlashVSR | ❌ arch | `flashvsr_arch` not vendored yet |
-| 10 | EvTexture | ❌ weights | Arch vendored (Apache-2.0, DachunKai/EvTexture); `DachunKai/EvTexture` HF weight repo still dead |
+| 10 | EvTexture | ✅ real | Arch vendored (Apache-2.0, DachunKai/EvTexture); weights from GitHub releases (`EvTexture_REDS_BIx4.pth`), HF repo was dead |
 | 11 | CodeFormer | ✅ real | Arch vendored from sczhou/CodeFormer; weights auto-downloaded |
 | 12 | CodeFormer++ | ❌ arch | `codeformer_pp_arch` not vendored yet |
 | 13 | GFPGAN | ✅ real | Fixed dead HF repo → `nlightcho/gfpgan_v14` |
 | 14 | DicFace | ❌ extra | `pip install restorax[dicface]` |
 | 15 | DDColor | ❌ arch+weights | `ddcolor_arch` not vendored; `piddnad/DDColor` HF dead |
 | 16 | RIFE | ✅ running | Classical fallback (temporal arch pending) |
-| 17 | Scratch Removal | ❌ weights | Arch vendored (S-Lab 1.0 NC, sczhou/ProPainter); weight download targets wrong HF repo_type (`model` vs actual `space`) |
+| 17 | Scratch Removal | ✅ real | Arch vendored (S-Lab 1.0 NC, sczhou/ProPainter); weights from GitHub releases v0.1.0 (HF repo_type was wrong — `space`, not `model`) |
 | 18 | HDRTVDM | ❌ arch+weights | `hdrtvdm_arch` not vendored; `AndreGuo/HDRTVDM` HF dead |
 | 19 | Video Stabilization | ✅ running | OpenCV optical-flow fallback |
 | 20 | GaVS | ✅ running | OpenCV fallback (arch not yet public) |
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 ❌ weights — no public weight mirror found; supply manually via `models/`.
 ❌ arch — architecture module not yet vendored into this repo.
 ❌ arch+weights — both missing.
-10/25 models produce real output as of this sprint.
+13/25 models produce real output as of this sprint.
 
 ---
 
