@@ -267,7 +267,7 @@ class RecurrentFlowCompleteNet(nn.Module):
 
         if model_path is not None:
             print('Pretrained flow completion model has loaded...')
-            ckpt = torch.load(model_path, map_location='cpu')
+            ckpt = torch.load(model_path, map_location='cpu', weights_only=True)
             self.load_state_dict(ckpt, strict=True)
 
 
