@@ -36,7 +36,6 @@ from restorax.core.restorer import (
 
 logger = logging.getLogger(__name__)
 
-_HF_REPO = "sczhou/ProPainter"
 _WEIGHT_DIR = "weights"
 
 # Temporal difference threshold for scratch detection (0–255 scale)
@@ -209,11 +208,25 @@ class ScratchRemovalRestorer(BaseRestorer):
             raise RestorerLoadError(f"Failed to load ProPainter weights: {exc}") from exc
 
 
-def _download_propainter_weights(weight_dir: Path) -> None:
-    try:
-        from huggingface_hub import snapshot_download
-    except ImportError as exc:
-        raise RestorerLoadError("huggingface_hub required to download ProPainter weights.") from exc
+_WEIGHT_BASE_URL = "https://github.com/sczhou/ProPainter/releases/download/v0.1.0"
+_WEIGHT_FILES = ("raft-things.pth", "recurrent_flow_completion.pth", "ProPainter.pth")
 
-    snapshot_download(repo_id=_HF_REPO, local_dir=str(weight_dir))
+
+def _download_propainter_weights(weight_dir: Path) -> None:
+    import shutil
+    import urllib.error
+    import urllib.request
+
+    for filename in _WEIGHT_FILES:
+        dest = weight_dir / filename
+        url = f"{_WEIGHT_BASE_URL}/{filename}"
+        logger.info("Downloading ProPainter weight %s from GitHub releases…", filename)
+        try:
+            with (
+                urllib.request.urlopen(url, timeout=30) as response,  # noqa: S310
+                open(dest, "wb") as out_file,
+            ):
+                shutil.copyfileobj(response, out_file)
+        except (urllib.error.URLError, OSError) as exc:
+            raise RestorerLoadError(f"Cannot download ProPainter weight '{filename}': {exc}") from exc
     logger.info("ProPainter weights downloaded to %s", weight_dir)
