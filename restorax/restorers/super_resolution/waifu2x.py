@@ -120,18 +120,16 @@ class Waifu2xRestorer(BaseRestorer):
         weight_path = Path(settings.model_dir) / "waifu2x" / "waifu2x_x2.pth"
 
         if not weight_path.exists():
-            try:
-                from huggingface_hub import hf_hub_download
-                weight_path.parent.mkdir(parents=True, exist_ok=True)
-                hf_hub_download(
-                    repo_id="deepghs/waifu2x",
-                    filename="waifu2x_x2.pth",
-                    local_dir=str(weight_path.parent),
-                )
-            except Exception as exc:
-                raise RestorerLoadError(
-                    f"Failed to download waifu2x weights to {weight_path}: {exc}"
-                ) from exc
+            raise RestorerLoadError(
+                f"Waifu2x weights not found at {weight_path}. No plain, directly-loadable "
+                "checkpoint is publicly available for this architecture: the upstream "
+                "yu45020/Waifu2x repo only ships 7-Zip archives "
+                "(model_check_points/Upconv_7/{anime,photo}.7z at "
+                "https://github.com/yu45020/Waifu2x/tree/master/model_check_points/Upconv_7), "
+                "and other mirrors host incompatible ONNX or original-format weights. Extract "
+                "one of those archives yourself (requires py7zr or the 7z CLI) and place the "
+                f"resulting state dict at {weight_path}."
+            )
 
         try:
             model = UpConvNet(scale=2)

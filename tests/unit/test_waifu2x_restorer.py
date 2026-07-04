@@ -40,8 +40,8 @@ class TestWaifu2xBuildModelRaisesOnMissingArch:
 
 
 class TestWaifu2xBuildModelRaisesOnMissingWeights:
-    def test_raises_restorer_load_error_when_weights_absent_and_hub_unavailable(self, tmp_path):
-        """When weights file is absent and huggingface_hub is missing, RestorerLoadError is raised."""
+    def test_raises_restorer_load_error_when_weights_absent(self, tmp_path):
+        """When the weights file is absent, RestorerLoadError explains none are available."""
 
         class _FakeUpConvNet(torch.nn.Module):
             def __init__(self, scale: int) -> None:
@@ -55,8 +55,6 @@ class TestWaifu2xBuildModelRaisesOnMissingWeights:
         def mock_import(name, *args, **kwargs):
             if "waifu2x_arch" in name:
                 return fake_arch
-            if name == "huggingface_hub" or name.startswith("huggingface_hub"):
-                raise ImportError("No module named 'huggingface_hub'")
             return real_import(name, *args, **kwargs)
 
         device = torch.device("cpu")
@@ -65,5 +63,14 @@ class TestWaifu2xBuildModelRaisesOnMissingWeights:
             patch("builtins.__import__", side_effect=mock_import),
             patch("restorax.config.settings.model_dir", str(tmp_path)),
         ):
-            with pytest.raises(RestorerLoadError, match="Failed to download waifu2x weights"):
+            with pytest.raises(RestorerLoadError, match="Waifu2x weights not found"):
                 Waifu2xRestorer._build_model(device)
+
+
+class TestWaifu2xArch:
+    def test_upconvnet_is_instantiable_module_with_parameters(self):
+        from restorax.restorers.super_resolution.waifu2x_arch import UpConvNet
+
+        model = UpConvNet(scale=2)
+        assert isinstance(model, torch.nn.Module)
+        assert len(list(model.parameters())) > 0
