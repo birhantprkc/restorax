@@ -200,10 +200,19 @@ class CodeFormerRestorer(BaseRestorer):
 
     @staticmethod
     def _download_weights(model_dir: Path) -> Path:
+        import shutil
+        import urllib.error
         import urllib.request
 
         logger.info("Downloading CodeFormer weights from GitHub releases…")
         model_dir.mkdir(parents=True, exist_ok=True)
         dest = model_dir / _WEIGHT_FILE
-        urllib.request.urlretrieve(_WEIGHT_URL, dest)
+        try:
+            with (
+                urllib.request.urlopen(_WEIGHT_URL, timeout=30) as response,  # noqa: S310
+                open(dest, "wb") as out_file,
+            ):
+                shutil.copyfileobj(response, out_file)
+        except (urllib.error.URLError, OSError) as exc:
+            raise RestorerLoadError(f"Cannot download CodeFormer weights: {exc}") from exc
         return dest
