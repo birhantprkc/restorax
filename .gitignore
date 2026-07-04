@@ -99,6 +99,8 @@ celery*.log
 
 # ── Vibe Coding ───────────────────────────────────────────────────────────
 CLAUDE.md
+PLAN.md
+STATUS.md
 graphify-out/
 .claude.worktrees/
 .worktrees/
