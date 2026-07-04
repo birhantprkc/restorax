@@ -40,3 +40,11 @@ class TestEvTextureBuildModelRaisesWhenArchAbsent:
         with patch("builtins.__import__", side_effect=mock_import):
             with pytest.raises(RestorerLoadError, match="EvTexture arch unavailable"):
                 EvTextureRestorer._build_model(device)
+
+
+class TestEvTextureArchModule:
+    def test_evtexture_class_is_nn_module(self):
+        from restorax.restorers.super_resolution.evtexture_arch import EvTexture
+
+        model = EvTexture(scale=4)
+        assert isinstance(model, torch.nn.Module)
