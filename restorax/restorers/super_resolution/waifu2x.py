@@ -40,6 +40,48 @@ from restorax.core.restorer import (
 
 logger = logging.getLogger(__name__)
 
+_WEIGHT_ARCHIVE_URL = (
+    "https://raw.githubusercontent.com/yu45020/Waifu2x/master/model_check_points/Upconv_7/anime.7z"
+)
+_WEIGHT_ARCHIVE_MEMBER = "anime/scale2.0x_model.json"
+
+
+def _download_and_extract_weights(weight_dir: Path, json_path: Path) -> None:
+    """Download the upstream 7z archive and extract the one JSON checkpoint we need.
+
+    The archive ships nagadomi's original waifu2x JSON weight export (list of
+    per-layer conv weight/bias arrays), not a PyTorch state_dict - that's what
+    ``UpConvNet.load_pre_train_weights`` (vendored from upstream) expects.
+    """
+    import shutil
+    import tempfile
+    import urllib.error
+    import urllib.request
+
+    try:
+        import py7zr
+    except ImportError as exc:
+        raise RestorerLoadError(
+            "py7zr is required to extract waifu2x weights - install with: pip install restorax[waifu2x]"
+        ) from exc
+
+    weight_dir.mkdir(parents=True, exist_ok=True)
+    logger.info("Downloading waifu2x weights archive from yu45020/Waifu2x…")
+    tmp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".7z", delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+            with urllib.request.urlopen(_WEIGHT_ARCHIVE_URL, timeout=30) as response:  # noqa: S310
+                shutil.copyfileobj(response, tmp)
+        with py7zr.SevenZipFile(tmp_path, mode="r") as archive:
+            archive.extract(path=str(weight_dir), targets=[_WEIGHT_ARCHIVE_MEMBER])
+        (weight_dir / _WEIGHT_ARCHIVE_MEMBER).rename(json_path)
+    except (urllib.error.URLError, OSError, py7zr.exceptions.Bad7zFile) as exc:
+        raise RestorerLoadError(f"Cannot download/extract waifu2x weights: {exc}") from exc
+    finally:
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
+
 
 class Waifu2xRestorer(BaseRestorer):
     """
@@ -117,27 +159,18 @@ class Waifu2xRestorer(BaseRestorer):
             ) from exc
 
         from restorax.config import settings
-        weight_path = Path(settings.model_dir) / "waifu2x" / "waifu2x_x2.pth"
+        weight_dir = Path(settings.model_dir) / "waifu2x"
+        json_path = weight_dir / "anime_scale2.0x_model.json"
 
-        if not weight_path.exists():
-            raise RestorerLoadError(
-                f"Waifu2x weights not found at {weight_path}. No plain, directly-loadable "
-                "checkpoint is publicly available for this architecture: the upstream "
-                "yu45020/Waifu2x repo only ships 7-Zip archives "
-                "(model_check_points/Upconv_7/{anime,photo}.7z at "
-                "https://github.com/yu45020/Waifu2x/tree/master/model_check_points/Upconv_7), "
-                "and other mirrors host incompatible ONNX or original-format weights. Extract "
-                "one of those archives yourself (requires py7zr or the 7z CLI) and place the "
-                f"resulting state dict at {weight_path}."
-            )
+        if not json_path.exists():
+            _download_and_extract_weights(weight_dir, json_path)
 
         try:
             model = UpConvNet(scale=2)
-            ckpt = torch.load(weight_path, map_location="cpu", weights_only=True)
-            model.load_state_dict(ckpt.get("params", ckpt), strict=False)
+            model.load_pre_train_weights(str(json_path))
             model.to(device)
             return model
         except Exception as exc:
             raise RestorerLoadError(
-                f"Failed to load waifu2x weights from {weight_path}: {exc}"
+                f"Failed to load waifu2x weights from {json_path}: {exc}"
             ) from exc

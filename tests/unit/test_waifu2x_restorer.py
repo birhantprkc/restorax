@@ -40,8 +40,8 @@ class TestWaifu2xBuildModelRaisesOnMissingArch:
 
 
 class TestWaifu2xBuildModelRaisesOnMissingWeights:
-    def test_raises_restorer_load_error_when_weights_absent(self, tmp_path):
-        """When the weights file is absent, RestorerLoadError explains none are available."""
+    def test_raises_restorer_load_error_when_py7zr_unavailable(self, tmp_path):
+        """When weights are absent and py7zr is missing, RestorerLoadError explains why."""
 
         class _FakeUpConvNet(torch.nn.Module):
             def __init__(self, scale: int) -> None:
@@ -55,6 +55,8 @@ class TestWaifu2xBuildModelRaisesOnMissingWeights:
         def mock_import(name, *args, **kwargs):
             if "waifu2x_arch" in name:
                 return fake_arch
+            if name == "py7zr":
+                raise ImportError("No module named 'py7zr'")
             return real_import(name, *args, **kwargs)
 
         device = torch.device("cpu")
@@ -63,7 +65,7 @@ class TestWaifu2xBuildModelRaisesOnMissingWeights:
             patch("builtins.__import__", side_effect=mock_import),
             patch("restorax.config.settings.model_dir", str(tmp_path)),
         ):
-            with pytest.raises(RestorerLoadError, match="Waifu2x weights not found"):
+            with pytest.raises(RestorerLoadError, match="py7zr is required"):
                 Waifu2xRestorer._build_model(device)
 
 

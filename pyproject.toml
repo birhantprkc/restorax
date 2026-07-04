@@ -77,10 +77,13 @@ extras = [
     "kornia>=0.7.0",
     "imageio[ffmpeg]>=2.34.0",
 ]
+waifu2x = [
+    "py7zr>=0.20.0",
+]
 apm = [
     "sentry-sdk[fastapi,celery]>=2.0.0",
 ]
-all = ["restorax[sr,face,diffusion,extras,apm]"]
+all = ["restorax[sr,face,diffusion,extras,waifu2x,apm]"]
 dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
