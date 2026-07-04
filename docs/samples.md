@@ -60,21 +60,21 @@ document.addEventListener('DOMContentLoaded', () => {
 |---|-------|--------|-------|
 | 1 | RealESRGAN x4plus | ✅ real | Weights: `models/real_esrgan/` |
 | 2 | BasicVSR++ | ❌ weights | Arch fixed (BasicVSRPlusPlus); no public weight mirror |
-| 3 | Upscale-A-Video | ❌ arch | `upscale_a_video_arch` not vendored yet |
+| 3 | Upscale-A-Video | ❌ arch | Honest adapter shim vendored; real pipeline (~6000 LOC custom UNet/attention) not ported, `diffusers` not installed |
 | 4 | VRT | ❌ weights | Arch vendored; `JingyunLiang/VRT` weights have no public mirror |
 | 5 | MambaIR | ❌ arch | `mamba_ir_arch` not vendored; `pip install mamba-ssm` needed |
 | 6 | TDM | ❌ weights | Diffusion model; no public weights released |
 | 7 | SeedVR | ❌ weights | Diffusion model; no public weights released |
-| 8 | Waifu2x | ❌ arch+weights | `waifu2x_arch` not vendored; `deepghs/waifu2x` dead |
+| 8 | Waifu2x | ❌ weights | Arch vendored (`UpConv_7`, GPLv3, yu45020/Waifu2x); no plain-loadable checkpoint publicly available (upstream only ships 7z archives) |
 | 9 | FlashVSR | ❌ arch | `flashvsr_arch` not vendored yet |
-| 10 | EvTexture | ❌ arch+weights | `evtexture_arch` not vendored; `DachunKai/EvTexture` dead |
+| 10 | EvTexture | ❌ weights | Arch vendored (Apache-2.0, DachunKai/EvTexture); `DachunKai/EvTexture` HF weight repo still dead |
 | 11 | CodeFormer | ✅ real | Arch vendored from sczhou/CodeFormer; weights auto-downloaded |
 | 12 | CodeFormer++ | ❌ arch | `codeformer_pp_arch` not vendored yet |
 | 13 | GFPGAN | ✅ real | Fixed dead HF repo → `nlightcho/gfpgan_v14` |
 | 14 | DicFace | ❌ extra | `pip install restorax[dicface]` |
 | 15 | DDColor | ❌ arch+weights | `ddcolor_arch` not vendored; `piddnad/DDColor` HF dead |
 | 16 | RIFE | ✅ running | Classical fallback (temporal arch pending) |
-| 17 | Scratch Removal | ❌ arch+weights | `propainter_arch` not vendored; `sczhou/ProPainter` HF dead |
+| 17 | Scratch Removal | ❌ weights | Arch vendored (S-Lab 1.0 NC, sczhou/ProPainter); weight download targets wrong HF repo_type (`model` vs actual `space`) |
 | 18 | HDRTVDM | ❌ arch+weights | `hdrtvdm_arch` not vendored; `AndreGuo/HDRTVDM` HF dead |
 | 19 | Video Stabilization | ✅ running | OpenCV optical-flow fallback |
 | 20 | GaVS | ✅ running | OpenCV fallback (arch not yet public) |

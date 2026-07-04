@@ -175,14 +175,24 @@ All 25 restorers as ComfyUI custom nodes (`comfyui_nodes/`), distributed via Com
 - Lazy weight download on first node execution.
 - Phases: base conversion layer → SR nodes → face/color/interpolation nodes → stabilization/deinterlace/HDR/artifact nodes → audio nodes → manifest + ComfyUI-Manager PR.
 
-### 4.3a Arch Vendoring — 15 remaining models (in progress)
+### 4.3a Arch Vendoring — 15 remaining models
 
-10 of 25 models have real benchmarked samples; 15 fail in the manifest. Branch `feat/arch-vendoring-benchmarks` already vendored VRT (BSD) + CodeFormer (MIT) arch. Remaining 15, grouped by failure mode:
+10 of 25 models have real benchmarked samples. `feat/arch-vendoring-benchmarks` (merged, PR #25) vendored VRT (CC BY-NC 4.0) + CodeFormer (NTU S-Lab 1.0 NC) arch.
 
-- **Vendor arch module (10):** upscale_a_video (`upscale_a_video_arch`, needs `diffusers`), mamba_ir (`mamba_ir_arch`, `[sr]` extra / `mamba-ssm`), tdm + seedvr (`tdm_arch`/`seedvr_arch`, `diffusers`), waifu2x (`waifu2x_arch`), flashvsr (`flashvsr_arch`), evtexture (`evtexture_arch`), codeformer_pp (`codeformer_pp_arch`, sibling of vendored CodeFormer MIT), dicface (`[dicface]` extra), propainter scratch (`propinter_arch.py`), hdr_tvdm (`hdr_tvdm_arch`), ai_deinterlace (`deinterlace_arch`).
-- **Dead/missing weights (3):** basicvsr_pp (no public mirror; arch class fix already done on branch), vrt (arch vendored; needs weight source), ddcolor (HF repo `piddnad/ddcolor_models` gone — re-mirror).
+**Wave 1 — DONE (arch vendored for all 4, weights still blocked for all 4):**
+- Waifu2x — `waifu2x_arch.py` (`UpConv_7`, **GPLv3**, yu45020/Waifu2x — accepted exception to the NC-only precedent). No plain-loadable checkpoint publicly available (upstream only ships 7z archives) — left an honest `RestorerLoadError`, previous weight source (`deepghs/waifu2x`) was fabricated/404.
+- EvTexture — `evtexture_arch.py` (Apache-2.0, DachunKai/EvTexture). Weight repo `DachunKai/EvTexture` on HF still 404 — separate fix needed.
+- Upscale-A-Video — `upscale_a_video_arch.py` (S-Lab 1.0 NC). Honest adapter shim only — real pipeline is ~6000 LOC of custom UNet/attention/temporal modules, not a thin `diffusers` wrapper as assumed; `diffusers` itself isn't installed. Real inference still doesn't work.
+- ProPainter (scratch removal) — `propainter_arch.py` + `propainter/` subpackage (NTU S-Lab 1.0 NC). Full inference pipeline ported (not simplified), verified via state_dict shape-matching. Weight download bug found: `snapshot_download(repo_id="sczhou/ProPainter")` uses `repo_type="model"` but that HF repo is a Space — 404, needs `repo_type="space"` or a switch to GitHub Releases.
+- Filename note: the actual vendored file is `propainter_arch.py` (this doc previously had a typo, `propinter_arch.py`).
 
-Convention per repo: sub-agents on **disjoint arch files + one restorer each**; parent owns `restorers/__init__` registration + commits. No worktree isolation (editable install breaks pytest imports). License header + source attribution required (match `vrt_arch.py`/`codeformer_arch.py` precedent).
+**Remaining (11), grouped by failure mode:**
+- **Vendor arch module (7):** mamba_ir (`mamba_ir_arch`, `[sr]` extra / `mamba-ssm`; upstream repo location unclear, 404s), tdm + seedvr (`tdm_arch`/`seedvr_arch`, diffusion/`diffusers`), flashvsr (`flashvsr_arch`, upstream unclear), codeformer_pp (`codeformer_pp_arch` — no confirmed upstream, may need to retire in favor of RestoreFormer/VQFR), dicface (`[dicface]` extra, upstream/license unconfirmed), hdr_tvdm (`hdr_tvdm_arch`, upstream 404s), ai_deinterlace (`deinterlace_arch`, upstream unclear).
+- **Weight-mirror-only, arch already vendored (4):** waifu2x, evtexture, upscale_a_video (partial — needs the real arch too), propainter scratch — see Wave 1 notes above.
+- **Dead/missing weights, arch fix already done (2):** basicvsr_pp (no public mirror), vrt (needs weight source).
+- **Arch AND weights (1):** ddcolor — `ddcolor_arch` not vendored (HF repo `piddnad/DDColor` source unconfirmed); weight repo `piddnad/ddcolor_models` also gone.
+
+Convention per repo: sub-agents on **disjoint arch files + one restorer each**; parent owns `restorers/__init__` registration + commits. No worktree isolation (editable install breaks pytest imports). License header + source attribution required (match `vrt_arch.py`/`codeformer_arch.py` precedent) — verify the LICENSE file live before vendoring, don't assume from training data (this repo has been burned by wrong MIT/BSD claims twice already).
 
 ### 4.3b Benchmark + Promo Assets (in progress)
 
